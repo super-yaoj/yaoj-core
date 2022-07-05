@@ -33,7 +33,7 @@ func Judge(ctx *gin.Context) {
 	}
 
 	// store submission
-	file, _ := os.CreateTemp(os.TempDir(), "judge-******")
+	file, _ := os.CreateTemp(os.TempDir(), "judge-*")
 	_, err = io.Copy(file, ctx.Request.Body)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -43,7 +43,7 @@ func Judge(ctx *gin.Context) {
 	defer os.Remove(file.Name())
 
 	prob := storage.Get(qry.Checksum)
-	tmpdir, err := os.MkdirTemp("", "yaoj-runtime-******")
+	tmpdir, err := os.MkdirTemp("", "yaoj-runtime-*")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

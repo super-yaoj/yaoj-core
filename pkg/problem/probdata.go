@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -183,7 +182,7 @@ func copyRecord(rcd record) (res record) {
 }
 
 func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res record, err error) {
-	log.Printf("Export Record #%d %#v", id, dircd)
+	logger.Printf("Export Record #%d %#v", id, dircd)
 	res = make(record)
 	for field, val := range rcd {
 		if field[0] == '_' { // private field
@@ -200,7 +199,7 @@ func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res 
 }
 
 func (r *ProbData) exportTable(tb table, newroot, dirtb string) (table, error) {
-	log.Printf("Export Table %#v", dirtb)
+	logger.Printf("Export Table %#v", dirtb)
 	res := copyTable(tb)
 
 	for i, record := range tb.Record {

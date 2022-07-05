@@ -169,6 +169,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 
 	// parse subtask
 	if sNsubt, ok := conf["n_subtasks"]; ok {
+		prob.CalcMethod = problem.Mmin
 		nsubt, _ := strconv.ParseInt(sNsubt, 10, 32)
 		prob.Tests.Fields().Add("_subtaskid")
 		prob.Subtasks.Fields().Add("_subtaskid")

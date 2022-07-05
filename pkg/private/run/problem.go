@@ -41,14 +41,24 @@ func run(r *problem.ProbData, dir string, inboundPath map[workflow.Groupname]*ma
 			}
 			inboundPath[workflow.Gsubt] = toPathMap(r, subtask)
 			tests := testcaseOf(r, subtask["_subtaskid"])
+
+			// subtask score
 			score, err := strconv.ParseFloat(subtask["_score"], 64)
 			if err != nil {
 				return nil, err
 			}
 			sub_res.Fullscore = score
+
 			for _, test := range tests {
 				inboundPath[workflow.Gtests] = toPathMap(r, test)
-				res, err := RunWorkflow(r.Workflow(), dir, inboundPath, score/float64(len(tests)))
+
+				// test score
+				var test_score = score // Mmin or Mmax
+				if r.CalcMethod == problem.Msum {
+					test_score = score / float64(len(tests))
+				}
+
+				res, err := RunWorkflow(r.Workflow(), dir, inboundPath, test_score)
 				if err != nil {
 					return nil, err
 				}
@@ -63,10 +73,14 @@ func run(r *problem.ProbData, dir string, inboundPath map[workflow.Groupname]*ma
 		for _, test := range r.Tests.Record {
 			inboundPath[workflow.Gtests] = toPathMap(r, test)
 
-			score := r.Fullscore / float64(len(r.Tests.Record))
+			score := r.Fullscore // Mmin or Mmax
+			if r.CalcMethod == problem.Mmin {
+				score = r.Fullscore / float64(len(r.Tests.Record))
+			}
 			if f, err := strconv.ParseFloat(test["_score"], 64); err == nil {
 				score = f
 			}
+
 			res, err := RunWorkflow(r.Workflow(), dir, inboundPath, score)
 			if err != nil {
 				return nil, err

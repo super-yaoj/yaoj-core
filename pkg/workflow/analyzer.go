@@ -8,8 +8,8 @@ import (
 	goPlugin "plugin"
 
 	"github.com/k0kubun/pp/v3"
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"golang.org/x/text/encoding/charmap"
 )
 

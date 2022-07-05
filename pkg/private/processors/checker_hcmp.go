@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sshwy/yaoj-core/pkg/private/judger"
-	"github.com/sshwy/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Compares two signed huge (big) integers.

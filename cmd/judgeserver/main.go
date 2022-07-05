@@ -10,8 +10,8 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sshwy/yaoj-core/pkg/buflog"
-	"github.com/sshwy/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/problem"
 )
 
 // concurrent-safe storage

@@ -70,7 +70,7 @@ the future.
 
 Workflow
 
-See github.com/sshwy/yaoj-core/workflow.
+See github.com/super-yaoj/yaoj-core/workflow.
 
 Problem gives workflow 4 datagroups naming "testcase", "subtask", "static" and
 "submission" respectively.

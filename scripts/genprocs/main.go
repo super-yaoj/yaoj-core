@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sshwy/yaoj-core/pkg/private/processors"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 func renderStr(s string) string {

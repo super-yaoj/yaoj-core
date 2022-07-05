@@ -6,8 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/sshwy/yaoj-core/pkg/migrator"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/migrator"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 var isUoj bool

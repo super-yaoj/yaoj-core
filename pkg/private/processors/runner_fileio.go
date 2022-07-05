@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sshwy/yaoj-core/pkg/private/judger"
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 // Run a program reading from file and print to file and stderr.

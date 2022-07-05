@@ -1,8 +1,8 @@
 package processors
 
 import (
-	"github.com/sshwy/yaoj-core/pkg/buflog"
-	"github.com/sshwy/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 type Processor = processor.Processor

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sshwy/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
 )
 
 // `s` contains a series of number seperated by space, denoting

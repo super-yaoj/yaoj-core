@@ -7,9 +7,9 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/k0kubun/pp/v3"
-	"github.com/sshwy/yaoj-core/pkg/private/run"
-	"github.com/sshwy/yaoj-core/pkg/problem"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/private/run"
+	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 var probData *problem.ProbData

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 type analyzerPlugin struct {

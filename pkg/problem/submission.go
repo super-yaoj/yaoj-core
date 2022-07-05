@@ -7,8 +7,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/sshwy/yaoj-core/pkg/utils"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // 存储文件的路径

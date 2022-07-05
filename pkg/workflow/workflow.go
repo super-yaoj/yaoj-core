@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 type Bound struct {

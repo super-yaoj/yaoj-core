@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sshwy/yaoj-core/pkg/buflog"
-	"github.com/sshwy/yaoj-core/pkg/private/run"
-	"github.com/sshwy/yaoj-core/pkg/problem"
-	"github.com/sshwy/yaoj-core/pkg/utils"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/private/run"
+	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 func Judge(ctx *gin.Context) {

@@ -3,8 +3,8 @@ package processors
 import (
 	"os"
 
-	"github.com/sshwy/yaoj-core/pkg/private/judger"
-	"github.com/sshwy/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Run a program reading from stdin and print to stdout and stderr.

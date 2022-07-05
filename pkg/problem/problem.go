@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sshwy/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"golang.org/x/text/language"
 )
 

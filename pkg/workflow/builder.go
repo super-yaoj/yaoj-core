@@ -3,7 +3,7 @@ package workflow
 import (
 	"fmt"
 
-	"github.com/sshwy/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Build a workflow

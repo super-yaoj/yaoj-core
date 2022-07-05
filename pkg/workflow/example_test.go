@@ -3,7 +3,7 @@ package workflow_test
 import (
 	"log"
 
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 func ExampleBuilder() {

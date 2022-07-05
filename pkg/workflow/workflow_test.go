@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/k0kubun/pp/v3"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 //go:generate go build -buildmode=plugin -o ./testdata ./testdata/custom_analyzer.go

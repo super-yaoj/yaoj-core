@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/sshwy/yaoj-core/pkg/utils"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // 子任务中测试点得分的汇总方式

@@ -1,4 +1,4 @@
-module github.com/sshwy/yaoj-core
+module github.com/super-yaoj/yaoj-core
 
 go 1.18
 

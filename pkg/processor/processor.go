@@ -4,7 +4,7 @@ package processor
 import (
 	"time"
 
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 // Processor takes a series of input (files) and generates a series of outputs.

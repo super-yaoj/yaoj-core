@@ -5,8 +5,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/sshwy/yaoj-core/pkg/problem"
-	"github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // change a record's relative path to real path

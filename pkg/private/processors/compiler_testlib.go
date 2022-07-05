@@ -6,9 +6,9 @@ import (
 
 	_ "embed"
 
-	"github.com/sshwy/yaoj-core/pkg/private/judger"
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 //go:embed testlib.h

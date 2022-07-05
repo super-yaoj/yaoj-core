@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/k0kubun/pp/v3"
-	"github.com/sshwy/yaoj-core/pkg/buflog"
-	"github.com/sshwy/yaoj-core/pkg/private/processors"
-	"github.com/sshwy/yaoj-core/pkg/processor"
-	"github.com/sshwy/yaoj-core/pkg/utils"
-	wk "github.com/sshwy/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	wk "github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // perform a workflow in a directory.

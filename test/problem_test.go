@@ -1,6 +1,7 @@
 package test_test
 
 import (
+	"os"
 	"path"
 	"testing"
 
@@ -135,6 +136,10 @@ int main () {
 
 	subm := problem.Submission{}
 	subm.Set("source", path.Join(dir, "src.cpp"))
+	if err := os.MkdirAll("tmp", os.ModePerm); err != nil {
+		t.Error(err)
+		return
+	}
 	if err := subm.DumpFile(path.Join("tmp", "subm.zip")); err != nil {
 		t.Error(err)
 		return

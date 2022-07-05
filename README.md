@@ -22,7 +22,7 @@
 
 <div align="center">
 <!--
-  <a href="https://github.com/sshwy/yaoj-core">
+  <a href="https://github.com/super-yaoj/yaoj-core">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 -->
@@ -69,7 +69,7 @@ The go toolkit command.
 1. Clone the repo
 
    ```sh
-   git clone --recursive https://github.com/sshwy/yaoj-core
+   git clone --recursive https://github.com/super-yaoj/yaoj-core
    ```
 
 2. Generate necessary files
@@ -91,7 +91,7 @@ The go toolkit command.
 
 ## Usage
 
-<a href="https://pkg.go.dev/github.com/sshwy/yaoj-core@master"><img src="https://pkg.go.dev/badge/github.com/sshwy/yaoj-core.svg" alt="Go Reference"></a>
+<a href="https://pkg.go.dev/github.com/super-yaoj/yaoj-core@master"><img src="https://pkg.go.dev/badge/github.com/super-yaoj/yaoj-core.svg" alt="Go Reference"></a>
 
 _For more examples, please refer to `*_test.go` files_
 
@@ -120,7 +120,7 @@ Distributed under the Apache-2.0 License. See `LICENSE` for more information.
 
 ## Contact
 
-Project Link: [https://github.com/sshwy/yaoj-core](https://github.com/sshwy/yaoj-core)
+Project Link: [https://github.com/super-yaoj/yaoj-core](https://github.com/super-yaoj/yaoj-core)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -136,16 +136,16 @@ Project Link: [https://github.com/sshwy/yaoj-core](https://github.com/sshwy/yaoj
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/sshwy/yaoj-core.svg
-[contributors-url]: https://github.com/sshwy/yaoj-core/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/sshwy/yaoj-core.svg
-[forks-url]: https://github.com/sshwy/yaoj-core/network/members
-[stars-shield]: https://img.shields.io/github/stars/sshwy/yaoj-core.svg
-[stars-url]: https://github.com/sshwy/yaoj-core/stargazers
-[issues-shield]: https://img.shields.io/github/issues/sshwy/yaoj-core.svg
-[issues-url]: https://github.com/sshwy/yaoj-core/issues
-[license-shield]: https://img.shields.io/github/license/sshwy/yaoj-core.svg
-[license-url]: https://github.com/sshwy/yaoj-core/blob/master/LICENSE
-[gover-shield]: https://img.shields.io/github/go-mod/go-version/sshwy/yaoj-core/master?filename=go.mod
-[tag-shield]: https://img.shields.io/github/v/tag/sshwy/yaoj-core?label=latest%20tag
-[codesize-shield]: https://img.shields.io/github/languages/code-size/sshwy/yaoj-core
+[contributors-shield]: https://img.shields.io/github/contributors/super-yaoj/yaoj-core.svg
+[contributors-url]: https://github.com/super-yaoj/yaoj-core/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/super-yaoj/yaoj-core.svg
+[forks-url]: https://github.com/super-yaoj/yaoj-core/network/members
+[stars-shield]: https://img.shields.io/github/stars/super-yaoj/yaoj-core.svg
+[stars-url]: https://github.com/super-yaoj/yaoj-core/stargazers
+[issues-shield]: https://img.shields.io/github/issues/super-yaoj/yaoj-core.svg
+[issues-url]: https://github.com/super-yaoj/yaoj-core/issues
+[license-shield]: https://img.shields.io/github/license/super-yaoj/yaoj-core.svg
+[license-url]: https://github.com/super-yaoj/yaoj-core/blob/master/LICENSE
+[gover-shield]: https://img.shields.io/github/go-mod/go-version/super-yaoj/yaoj-core/master?filename=go.mod
+[tag-shield]: https://img.shields.io/github/v/tag/super-yaoj/yaoj-core?label=latest%20tag
+[codesize-shield]: https://img.shields.io/github/languages/code-size/super-yaoj/yaoj-core

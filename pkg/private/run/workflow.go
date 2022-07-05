@@ -4,10 +4,10 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"log"
 	"os"
 
 	"github.com/k0kubun/pp/v3"
+	"github.com/sshwy/yaoj-core/pkg/buflog"
 	"github.com/sshwy/yaoj-core/pkg/private/processors"
 	"github.com/sshwy/yaoj-core/pkg/processor"
 	"github.com/sshwy/yaoj-core/pkg/utils"
@@ -221,4 +221,4 @@ func topologicalEnum(w wk.Workflow, handler func(id string) error) error {
 	return nil
 }
 
-var logger = log.New(os.Stderr, "[run] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
+var logger = buflog.New("[run] ")

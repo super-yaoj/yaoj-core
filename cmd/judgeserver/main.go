@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path"
@@ -11,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sshwy/yaoj-core/pkg/buflog"
 	"github.com/sshwy/yaoj-core/pkg/problem"
 )
 
@@ -43,7 +43,7 @@ func main() {
 	var cachedir = path.Join(os.TempDir(), "yaoj-judger-server-cache")
 	os.RemoveAll(cachedir)
 	if err := os.MkdirAll(cachedir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	r := gin.Default()
@@ -75,4 +75,4 @@ func init() {
 	flag.StringVar(&address, "listen", "localhost:3000", "listening address")
 }
 
-var logger = log.New(os.Stderr, "[judgeserver] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
+var logger = buflog.New("[judgeserver] ")

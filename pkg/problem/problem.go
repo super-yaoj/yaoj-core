@@ -1,12 +1,12 @@
 package problem
 
 import (
-	"log"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 
+	"github.com/sshwy/yaoj-core/pkg/buflog"
 	"golang.org/x/text/language"
 )
 
@@ -173,8 +173,6 @@ var SupportLangs = []language.Tag{
 
 var langMatcher = language.NewMatcher(SupportLangs)
 
-var logger = log.New(os.Stderr, "[problem] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
-
 func GuessLang(lang string) string {
 	tag, _, _ := langMatcher.Match(language.Make(lang))
 	if tag == language.Und {
@@ -187,3 +185,5 @@ func GuessLang(lang string) string {
 func (r *prob) Data() *ProbData {
 	return r.data
 }
+
+var logger = buflog.New("[problem] ")

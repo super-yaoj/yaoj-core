@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/sshwy/yaoj-core/pkg/buflog"
 	"github.com/sshwy/yaoj-core/pkg/problem"
 	"github.com/sshwy/yaoj-core/pkg/utils"
 	"github.com/sshwy/yaoj-core/pkg/workflow"
@@ -255,4 +255,4 @@ func parseInt(s string) int {
 	return int(res)
 }
 
-var logger = log.New(os.Stderr, "[migrator] ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
+var logger = buflog.New("[migrator] ")

@@ -43,6 +43,16 @@ func (r *tableFieldCtrl) Delete(name string) {
 	}
 }
 
+// Validate record
+func (r *tableFieldCtrl) Check(rcd record) bool {
+	for field := range rcd {
+		if _, ok := r.Field[field]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 type tableRecordCtrl table
 
 func (r *tableRecordCtrl) New() record {

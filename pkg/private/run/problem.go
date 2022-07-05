@@ -27,20 +27,8 @@ func testcaseOf(r *problem.ProbData, subtaskid string) []map[string]string {
 	return res
 }
 
-// Run all testcase in the dir.
-func RunProblem(r *problem.ProbData, dir string, submission map[string]string) (*problem.Result, error) {
+func run(r *problem.ProbData, dir string, inboundPath map[workflow.Groupname]*map[string]string) (*problem.Result, error) {
 	logger.Printf("run dir=%s", dir)
-	// check submission
-	for k := range r.Submission {
-		if _, ok := submission[k]; !ok {
-			return nil, fmt.Errorf("submission missing field %s", k)
-		}
-	}
-
-	var inboundPath = map[workflow.Groupname]*map[string]string{
-		workflow.Gsubm: (*map[string]string)(&submission),
-	}
-	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
 	var result = problem.Result{
 		IsSubtask: r.IsSubtask(),
 		Subtask:   []problem.SubtResult{},
@@ -89,4 +77,40 @@ func RunProblem(r *problem.ProbData, dir string, submission map[string]string) (
 		result.Subtask = append(result.Subtask, sub_res)
 	}
 	return &result, nil
+}
+
+// Run all testcase in the dir.
+func RunProblem(r *problem.ProbData, dir string, submission map[string]string) (*problem.Result, error) {
+	logger.Printf("run dir=%s", dir)
+	// check submission
+	for k := range r.Submission {
+		if _, ok := submission[k]; !ok {
+			return nil, fmt.Errorf("submission missing field %s", k)
+		}
+	}
+
+	var inboundPath = map[workflow.Groupname]*map[string]string{
+		workflow.Gsubm: (*map[string]string)(&submission),
+	}
+	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
+	return run(r, dir, inboundPath)
+}
+
+// Custom test 即提供测试数据和提交数据
+// 大部分 custom test 不关注答案正确性，只关注是否 MLE 或者 TLE 之类。
+// Subtask 数据取第一个subtask的数据
+func RunCustom(r *problem.ProbData, dir string, submission map[string]string, test map[string]string) (*workflow.Result, error) {
+	var inboundPath = map[workflow.Groupname]*map[string]string{
+		workflow.Gsubm:   &submission,
+		workflow.Gtests:  &test,
+		workflow.Gstatic: toPathMap(r, r.Static),
+	}
+	if !r.Tests.Fields().Check(test) {
+		return nil, fmt.Errorf("invalid test data")
+	}
+	if r.IsSubtask() {
+		inboundPath[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
+	}
+
+	return RunWorkflow(r.Workflow(), dir, inboundPath, r.Fullscore)
 }

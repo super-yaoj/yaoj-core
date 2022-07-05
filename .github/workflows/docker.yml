@@ -1,6 +1,6 @@
-name: Go
+name: Docker
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -21,13 +21,9 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.18
-    - name: Generate
-      run: go generate -v
-    - name: Build
+    - name: Build Image
+      run: ./build/build_image.sh
+    - name: Log in to registry
       run: |
-        go build -v ./cmd/migrator
-        go build -v ./cmd/judgeserver
-    - name: Test
-      run: |
-        go test -v ./pkg/...
-        go test -v ./test
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/super-yaoj/judgeserver:latest

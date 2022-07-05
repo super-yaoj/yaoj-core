@@ -49,6 +49,7 @@ func main() {
 	r := gin.Default()
 	r.POST("/judge", Judge)
 	r.POST("/sync", Sync)
+	r.GET("/log", Log)
 
 	// handle signal
 	sigs := make(chan os.Signal, 1)

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sshwy/yaoj-core/pkg/buflog"
 	"github.com/sshwy/yaoj-core/pkg/private/run"
 	"github.com/sshwy/yaoj-core/pkg/problem"
 	"github.com/sshwy/yaoj-core/pkg/utils"
@@ -128,5 +129,12 @@ func Sync(ctx *gin.Context) {
 	storage.Set(qry.Checksum, prob)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "ok",
+	})
+}
+
+func Log(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "ok",
+		"logs":    buflog.Tail(),
 	})
 }

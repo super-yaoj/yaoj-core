@@ -8,6 +8,7 @@ import (
 	"github.com/k0kubun/pp/v3"
 	"github.com/sshwy/yaoj-core/pkg/private/run"
 	"github.com/sshwy/yaoj-core/pkg/problem"
+	"github.com/sshwy/yaoj-core/pkg/workflow"
 )
 
 var probData *problem.ProbData
@@ -134,21 +135,22 @@ int main () {
 
 	subm := problem.Submission{}
 	subm.Set("source", path.Join(dir, "src.cpp"))
-	if err := subm.DumpFile(path.Join(dir, "subm.zip")); err != nil {
+	if err := subm.DumpFile(path.Join("tmp", "subm.zip")); err != nil {
 		t.Error(err)
 		return
 	}
-	subm2, err := problem.LoadSubm(path.Join(dir, "subm.zip"), dir)
+	subm2, err := problem.LoadSubm(path.Join("tmp", "subm.zip"), dir)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	pp.Print(subm2)
 
-	res, err := run.RunProblem(theProb.Data(), t.TempDir(), subm2)
+	res, err := run.RunProblem(theProb.Data(), t.TempDir(), *subm2[workflow.Gsubm])
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(pp.Sprint(res))
+	t.Log(res.Brief())
+	// t.Log(pp.Sprint(res))
 }

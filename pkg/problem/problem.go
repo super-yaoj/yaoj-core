@@ -1,16 +1,12 @@
 package problem
 
 import (
-	"archive/zip"
-	"encoding/json"
-	"io"
 	"log"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 
-	"github.com/sshwy/yaoj-core/pkg/utils"
 	"golang.org/x/text/language"
 )
 
@@ -191,94 +187,3 @@ func GuessLang(lang string) string {
 func (r *prob) Data() *ProbData {
 	return r.data
 }
-
-// limitation for any file submitted
-type SubmLimit struct {
-	// 接受的语言，nil 表示所有语言
-	Langs []utils.LangTag
-	// 接受哪些类型的文件，必须设置值
-	Accepted utils.CtntType
-	// 文件大小，单位 byte
-	Length uint32
-}
-
-// 存储文件的路径
-type Submission map[string]string
-
-// 加入提交文件
-func (r Submission) Set(field string, name string) {
-	r[field] = name
-}
-
-// 打包
-func (r Submission) DumpFile(name string) error {
-	file, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	w := zip.NewWriter(file)
-	defer w.Close()
-
-	var pathmap = map[string]string{}
-
-	for field, name := range r {
-		file, err := os.Open(name)
-		if err != nil {
-			return err
-		}
-
-		filename := field + "-" + path.Base(name)
-		f, err := w.Create(filename)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(f, file)
-		if err != nil {
-			return err
-		}
-
-		file.Close()
-
-		pathmap[field] = filename
-	}
-
-	conf, err := w.Create("_config.json")
-	if err != nil {
-		return err
-	}
-
-	jsondata, err := json.Marshal(pathmap)
-	if err != nil {
-		return err
-	}
-
-	conf.Write(jsondata)
-	return nil
-}
-
-// 解压
-func LoadSubm(name string, dir string) (Submission, error) {
-	err := unzipSource(name, dir)
-	if err != nil {
-		return nil, err
-	}
-	bconf, err := os.ReadFile(path.Join(dir, "_config.json"))
-	if err != nil {
-		return nil, err
-	}
-	var pathmap map[string]string
-	if err := json.Unmarshal(bconf, &pathmap); err != nil {
-		return nil, err
-	}
-	var res = Submission{}
-	for field, name := range pathmap {
-		res[field] = path.Join(dir, name)
-	}
-	return res, nil
-}
-
-// 提交文件配置
-type SubmConf map[string]SubmLimit

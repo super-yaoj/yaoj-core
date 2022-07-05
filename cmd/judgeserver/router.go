@@ -10,12 +10,15 @@ import (
 	"github.com/sshwy/yaoj-core/pkg/private/run"
 	"github.com/sshwy/yaoj-core/pkg/problem"
 	"github.com/sshwy/yaoj-core/pkg/utils"
+	"github.com/sshwy/yaoj-core/pkg/workflow"
 )
 
 func Judge(ctx *gin.Context) {
 	type Judge struct {
 		Callback string `form:"cb" binding:"required"`
 		Checksum string `form:"sum" binding:"required"`
+		// default: judge. options: "custom" "hack"
+		Type string `form:"type"`
 	}
 	var qry Judge
 	err := ctx.BindQuery(&qry)
@@ -32,7 +35,10 @@ func Judge(ctx *gin.Context) {
 		return
 	}
 
-	// store submission
+	// remove after judging
+	tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
+
+	// load submission
 	file, _ := os.CreateTemp(os.TempDir(), "judge-*")
 	_, err = io.Copy(file, ctx.Request.Body)
 	if err != nil {
@@ -41,15 +47,14 @@ func Judge(ctx *gin.Context) {
 	}
 	file.Close()
 	defer os.Remove(file.Name())
-
-	prob := storage.Get(qry.Checksum)
-	tmpdir, err := os.MkdirTemp("", "yaoj-runtime-*")
+	submission, err := problem.LoadSubm(file.Name(), tmpdir)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	submission, err := problem.LoadSubm(file.Name(), tmpdir)
+	// load problem
+	prob := storage.Get(qry.Checksum)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -59,16 +64,31 @@ func Judge(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 
 	go func() {
-		result, err := run.RunProblem(prob.Data(), tmpdir, submission)
-		if err != nil {
-			logger.Printf("run problem: %v", err)
-			return
-		}
-		logger.Print(result.Brief())
+		if qry.Type == "custom" {
+			result, err := run.RunCustom(prob.Data(), tmpdir, *submission[workflow.Gsubm], *submission[workflow.Gtests])
+			if err != nil {
+				logger.Printf("run problem: %v", err)
+				return
+			}
 
-		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
-		if err != nil {
-			logger.Printf("callback request error: %v", err)
+			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+			if err != nil {
+				logger.Printf("callback request error: %v", err)
+			}
+		} else if qry.Type == "hack" {
+			http.Post(qry.Callback, "text/plain; charset=utf-8", bytes.NewReader([]byte("not implemented")))
+		} else {
+			result, err := run.RunProblem(prob.Data(), tmpdir, *submission[workflow.Gsubm])
+			if err != nil {
+				logger.Printf("run problem: %v", err)
+				return
+			}
+			logger.Print(result.Brief())
+
+			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+			if err != nil {
+				logger.Printf("callback request error: %v", err)
+			}
 		}
 		os.RemoveAll(tmpdir)
 	}()

@@ -118,6 +118,14 @@ type Result struct {
 	File []ResultFileDisplay
 }
 
+func (r Result) Byte() []byte {
+	data, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
 type ResultFileDisplay struct {
 	Title   string
 	Content string

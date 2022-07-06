@@ -79,6 +79,10 @@ func Judge(ctx *gin.Context) {
 		} else if qry.Type == "hack" {
 			http.Post(qry.Callback, "text/plain; charset=utf-8", bytes.NewReader([]byte("not implemented")))
 		} else {
+			// data, _ := json.MarshalIndent(submission, "", " ")
+			// logger.Print("Submission: ", string(data))
+			// ctnt, _ := os.ReadFile((*submission[workflow.Gsubm])["source"])
+			// logger.Print("Submission: ", string(ctnt))
 			result, err := run.RunProblem(prob.Data(), tmpdir, *submission[workflow.Gsubm])
 			if err != nil {
 				logger.Printf("run problem: %v", err)

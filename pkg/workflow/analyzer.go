@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	goPlugin "plugin"
+	"strings"
 
 	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -66,6 +67,38 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 			Title:     "Accepted",
 		},
 		File: []ResultFileDisplay{},
+	}
+
+	// system error
+	for name, node := range nodes {
+		if node.Result == nil || node.Attr["dependon"] == "user" {
+			continue
+		}
+		if node.Result.Code != processor.Ok {
+			res.Title = "System Error"
+			res.Score = 0
+			res.File = append(res.File, ResultFileDisplay{
+				Title:   "message",
+				Content: name + ": " + node.Result.Msg,
+			})
+			return res
+		}
+	}
+
+	// compile error
+	for name, node := range nodes {
+		if node.Result == nil || node.Attr["dependon"] != "user" {
+			continue
+		}
+		if node.Result.Code != processor.Ok && strings.Contains(node.ProcName, "compile") {
+			res.Title = "Compile Error"
+			res.Score = 0
+			res.File = append(res.File, ResultFileDisplay{
+				Title:   "message",
+				Content: name + ": " + node.Result.Msg,
+			})
+			return res
+		}
 	}
 
 	for name, node := range nodes {

@@ -1,30 +1,30 @@
 package run
 
-type WorkflowCache interface {
-	// hash value of node and its output files
-	Set(hash sha, outputs []string)
-	// nil if no cache
-	Get(hash sha) []string
+import (
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
+)
+
+type InMemoryCache[T any] struct {
+	data map[sha]T
 }
 
-type InMemoryCache struct {
-	data map[sha][]string
+func (r *InMemoryCache[T]) Set(hash sha, outputs T) {
+	r.data[hash] = outputs
+}
+func (r *InMemoryCache[T]) Get(hash sha) T {
+	return r.data[hash]
+}
+func (r *InMemoryCache[T]) Has(hash sha) bool {
+	_, ok := r.data[hash]
+	return ok
+}
+func (r *InMemoryCache[T]) Reset() {
+	r.data = map[sha]T{}
 }
 
-var _ WorkflowCache = (*InMemoryCache)(nil)
-
-func (r *InMemoryCache) Set(hash sha, outputs []string) {
-	if r.data[hash] != nil {
-		panic("multi set")
-	}
-	// logger.Print("\033[32mSet: \033[0m", hash, outputs)
-	r.data[hash] = outputs[:]
-}
-
-func (r *InMemoryCache) Get(hash sha) []string {
-	return r.data[hash][:]
-}
-
-var globalCache = InMemoryCache{
+var gOutputCache = InMemoryCache[[]string]{
 	data: map[sha][]string{},
+}
+var gResultCache = InMemoryCache[processor.Result]{
+	data: map[sha]processor.Result{},
 }

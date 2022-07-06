@@ -28,6 +28,8 @@ func testcaseOf(r *problem.ProbData, subtaskid string) []map[string]string {
 }
 
 func run(r *problem.ProbData, dir string, inboundPath map[workflow.Groupname]*map[string]string) (*problem.Result, error) {
+	gOutputCache.Reset()
+	gResultCache.Reset()
 	logger.Printf("run dir=%s", dir)
 	var result = problem.Result{
 		IsSubtask: r.IsSubtask(),

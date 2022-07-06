@@ -46,7 +46,7 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 		return nil, err
 	}
 	defer func() {
-		logger.Printf("Chdir back to %q", previousWd)
+		// logger.Printf("Chdir back to %q", previousWd)
 		os.Chdir(previousWd)
 	}()
 
@@ -54,7 +54,7 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 	if err != nil {
 		return nil, err
 	}
-	logger.Printf("Chdir %q", dir)
+	// logger.Printf("Chdir %q", dir)
 
 	err = topologicalEnum(w, func(id string) error {
 		node := nodes[id]
@@ -62,24 +62,22 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			return fmt.Errorf("input not fullfilled")
 		}
 		node.calcHash()
-		cache_outputs := globalCache.Get(node.hash)
-
-		if cache_outputs != nil {
+		if gOutputCache.Has(node.hash) {
 			logger.Printf("Run node[%s] (cached)", id)
+			cache_outputs := gOutputCache.Get(node.hash)[:]
+			result := gResultCache.Get(node.hash)
 			node.Output = cache_outputs
-			node.Result = nil
+			node.Result = &result
 		} else {
-			// log.Printf("%d, %v", id, node.hash)
+			logger.Printf("Run node[%s] no cache", id)
 			for i := 0; i < len(node.Output); i++ {
 				node.Output[i] = utils.RandomString(10)
 			}
-			logger.Printf("Run node[%s] no cache", id)
-			// logger.Printf("input %+v", node.Input)
-			// logger.Printf("output %+v", node.Output)
 			result := node.Processor().Run(node.Input, node.Output)
 
 			node.Result = result
-			globalCache.Set(node.hash, node.Output)
+			gOutputCache.Set(node.hash, node.Output)
+			gResultCache.Set(node.hash, *result)
 		}
 		nodes[id] = node
 		for _, edge := range w.EdgeFrom(id) {

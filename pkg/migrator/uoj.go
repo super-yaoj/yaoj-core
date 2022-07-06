@@ -99,6 +99,49 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 		}
 	}
 
+	// parse sample
+	if conf["n_sample_tests"] != "" {
+		prob.Pretest.Tests.Fields().Add("input")
+		prob.Pretest.Tests.Fields().Add("output")
+		prob.Pretest.Tests.Fields().Add("_score")
+		nsample := parseInt(conf["n_sample_tests"])
+		for i := 1; i <= int(nsample); i++ {
+			input := fmt.Sprint("ex_", conf["input_pre"], i, ".", conf["input_suf"])
+			output := fmt.Sprint("ex_", conf["output_pre"], i, ".", conf["output_suf"])
+
+			rcd := prob.Pretest.Tests.Records().New()
+			err = prob.SetValFile(rcd, "input", path.Join(src, "data", input))
+			if err != nil {
+				return nil, err
+			}
+			err = prob.SetValFile(rcd, "output", path.Join(src, "data", output))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// parse extra tests
+	if conf["n_ex_tests"] != "" {
+		prob.Extra.Tests.Fields().Add("input")
+		prob.Extra.Tests.Fields().Add("output")
+		prob.Extra.Tests.Fields().Add("_score")
+		nextra := parseInt(conf["n_ex_tests"])
+		for i := 1; i <= int(nextra); i++ {
+			input := fmt.Sprint("ex_", conf["input_pre"], i, ".", conf["input_suf"])
+			output := fmt.Sprint("ex_", conf["output_pre"], i, ".", conf["output_suf"])
+
+			rcd := prob.Extra.Tests.Records().New()
+			err = prob.SetValFile(rcd, "input", path.Join(src, "data", input))
+			if err != nil {
+				return nil, err
+			}
+			err = prob.SetValFile(rcd, "output", path.Join(src, "data", output))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// parse checker
 	if _, ok := conf["use_builtin_checker"]; ok {
 		logger.Printf("use builtin checker: %q", conf["use_builtin_checker"])

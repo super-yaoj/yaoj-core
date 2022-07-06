@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
@@ -41,6 +43,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	// clear cache
 	gOutputCache.Reset()
 	gResultCache.Reset()
+
 	// download submission
 	inboundPath := subm.Download(dir)
 	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
@@ -61,11 +64,40 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	}
 
 	if testdata.IsSubtask() {
-		for _, subtask := range testdata.Subtasks.Record {
+		records := testdata.Subtasks.Record
+		dependon := func(i, j int) bool {
+			deps := strings.Split(records[i]["_depend"], ",")
+			for _, sid := range deps {
+				if records[j]["_subtaskid"] == sid {
+					logger.Printf("%s need %s", records[i]["_subtaskid"], records[j]["_subtaskid"])
+					return true
+				}
+			}
+			return false
+		}
+		order, err := utils.TopoSort(len(records), dependon)
+		if err != nil {
+			return nil, err
+		}
+
+		result.Subtask = make([]problem.SubtResult, len(records))
+		for _, id := range order {
+			subtask := records[id]
 			sub_res := problem.SubtResult{
 				Subtaskid: subtask["_subtaskid"],
+				Score:     0,
 				Testcase:  []workflow.Result{},
 			}
+
+			var skip bool
+			if testdata.CalcMethod == problem.Mmin {
+				for j := range records {
+					if j != id && dependon(id, j) && !result.Subtask[j].IsFull() {
+						skip = true
+					}
+				}
+			}
+
 			inboundPath[workflow.Gsubt] = toPathMap(r, subtask)
 			tests := testcaseOf(&testdata, subtask["_subtaskid"])
 
@@ -79,19 +111,44 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			for _, test := range tests {
 				inboundPath[workflow.Gtests] = toPathMap(r, test)
 
-				// test score
+				// calc test fullscore
 				var test_score = score // Mmin or Mmax
 				if testdata.CalcMethod == problem.Msum {
 					test_score = score / float64(len(tests))
 				}
 
-				res, err := RunWorkflow(r.Workflow(), dir, inboundPath, test_score)
-				if err != nil {
-					return nil, err
+				var data workflow.Result
+				if skip {
+					data.Title = "Skipped"
+					data.Fullscore = test_score
+					data.Score = 0
+				} else {
+					res, err := RunWorkflow(r.Workflow(), dir, inboundPath, test_score)
+					if err != nil {
+						return nil, err
+					}
+					data = *res
 				}
-				sub_res.Testcase = append(sub_res.Testcase, *res)
+				sub_res.Testcase = append(sub_res.Testcase, data)
+
+				// accumulate subtask score
+				switch testdata.CalcMethod {
+				case problem.Mmax:
+					if sub_res.Score < data.Score {
+						sub_res.Score = data.Score
+					}
+				case problem.Mmin:
+					if sub_res.Score > data.Score {
+						sub_res.Score = data.Score
+					}
+					if sub_res.Score == 0 { // 已经是 0 分了
+						skip = true // 后面的都没必要测了
+					}
+				default:
+					sub_res.Score += data.Score
+				}
 			}
-			result.Subtask = append(result.Subtask, sub_res)
+			result.Subtask[id] = sub_res
 		}
 	} else {
 		sub_res := problem.SubtResult{

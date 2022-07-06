@@ -63,7 +63,12 @@ func (r Result) Brief() string {
 type SubtResult struct {
 	Subtaskid string
 	Fullscore float64
+	Score     float64
 	Testcase  []workflow.Result
+}
+
+func (r SubtResult) IsFull() bool {
+	return r.Fullscore-r.Score < 1e-5
 }
 
 // 题目评测时用到的数据

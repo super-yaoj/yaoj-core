@@ -17,8 +17,8 @@ func Judge(ctx *gin.Context) {
 	type Judge struct {
 		Callback string `form:"cb" binding:"required"`
 		Checksum string `form:"sum" binding:"required"`
-		// default: judge. options: "custom" "hack"
-		Type string `form:"type"`
+		// default: options: "custom" "pretest" "extra"
+		Mode string `form:"mode"`
 	}
 	var qry Judge
 	err := ctx.BindQuery(&qry)
@@ -64,7 +64,7 @@ func Judge(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 
 	go func() {
-		if qry.Type == "custom" {
+		if qry.Mode == "custom" { // custom test
 			result, err := run.RunCustom(prob.Data(), tmpdir, submission)
 			if err != nil {
 				logger.Printf("run problem: %v", err)
@@ -75,14 +75,8 @@ func Judge(ctx *gin.Context) {
 			if err != nil {
 				logger.Printf("callback request error: %v", err)
 			}
-		} else if qry.Type == "hack" {
-			http.Post(qry.Callback, "text/plain; charset=utf-8", bytes.NewReader([]byte("not implemented")))
-		} else {
-			// data, _ := json.MarshalIndent(submission, "", " ")
-			// logger.Print("Submission: ", string(data))
-			// ctnt, _ := os.ReadFile((*submission[workflow.Gsubm])["source"])
-			// logger.Print("Submission: ", string(ctnt))
-			result, err := run.RunProblem(prob.Data(), tmpdir, submission)
+		} else { // run corresponding mode
+			result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
 			if err != nil {
 				logger.Printf("run problem: %v", err)
 				return

@@ -17,7 +17,7 @@ func toPathMap(r *problem.ProbData, rcd map[string]string) *map[string]string {
 	}
 	return &res
 }
-func testcaseOf(r *problem.ProbData, subtaskid string) []map[string]string {
+func testcaseOf(r *problem.ProbTestdata, subtaskid string) []map[string]string {
 	res := []map[string]string{}
 	for _, test := range r.Tests.Record {
 		if test["_subtaskid"] == subtaskid {
@@ -28,7 +28,7 @@ func testcaseOf(r *problem.ProbData, subtaskid string) []map[string]string {
 }
 
 // Run all testcase in the dir.
-func RunProblem(r *problem.ProbData, dir string, subm problem.Submission) (*problem.Result, error) {
+func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode ...string) (*problem.Result, error) {
 	logger.Printf("run dir=%s", dir)
 
 	// check submission
@@ -49,14 +49,25 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission) (*prob
 		IsSubtask: r.IsSubtask(),
 		Subtask:   []problem.SubtResult{},
 	}
-	if r.IsSubtask() {
-		for _, subtask := range r.Subtasks.Record {
+
+	testdata := r.ProbTestdata
+	if len(mode) > 0 {
+		switch mode[0] {
+		case "pretest":
+			testdata = r.Pretest
+		case "extra":
+			testdata = r.Extra
+		}
+	}
+
+	if testdata.IsSubtask() {
+		for _, subtask := range testdata.Subtasks.Record {
 			sub_res := problem.SubtResult{
 				Subtaskid: subtask["_subtaskid"],
 				Testcase:  []workflow.Result{},
 			}
 			inboundPath[workflow.Gsubt] = toPathMap(r, subtask)
-			tests := testcaseOf(r, subtask["_subtaskid"])
+			tests := testcaseOf(&testdata, subtask["_subtaskid"])
 
 			// subtask score
 			score, err := strconv.ParseFloat(subtask["_score"], 64)
@@ -70,7 +81,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission) (*prob
 
 				// test score
 				var test_score = score // Mmin or Mmax
-				if r.CalcMethod == problem.Msum {
+				if testdata.CalcMethod == problem.Msum {
 					test_score = score / float64(len(tests))
 				}
 
@@ -86,12 +97,12 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission) (*prob
 		sub_res := problem.SubtResult{
 			Testcase: []workflow.Result{},
 		}
-		for _, test := range r.Tests.Record {
+		for _, test := range testdata.Tests.Record {
 			inboundPath[workflow.Gtests] = toPathMap(r, test)
 
 			score := r.Fullscore // Mmin or Mmax
-			if r.CalcMethod == problem.Mmin {
-				score = r.Fullscore / float64(len(r.Tests.Record))
+			if testdata.CalcMethod == problem.Mmin {
+				score = r.Fullscore / float64(len(testdata.Tests.Record))
 			}
 			if f, err := strconv.ParseFloat(test["_score"], 64); err == nil {
 				score = f

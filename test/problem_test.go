@@ -31,6 +31,7 @@ func MakeProbData(t *testing.T) {
 	script.Echo("# A + B Problem").WriteFile(path.Join(dir, "tmp.md"))
 
 	probData.Fullscore = 100
+	probData.CalcMethod = problem.Msum
 	probData.Tests.Fields().Add("input")
 	probData.Tests.Fields().Add("answer")
 	probData.Tests.Fields().Add("_subtaskid")
@@ -157,5 +158,5 @@ int main () {
 		return
 	}
 	t.Log(res.Brief())
-	// t.Log(pp.Sprint(res))
+	t.Log(pp.Sprint(res))
 }

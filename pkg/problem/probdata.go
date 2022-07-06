@@ -64,17 +64,28 @@ type SubtResult struct {
 	Testcase  []workflow.Result
 }
 
-// Problem data module
-type ProbData struct {
-	// Usually 100.
-	// Full score can be used to determine the point of testcase
-	Fullscore  float64
+// 题目评测时用到的数据
+type ProbTestdata struct {
+	// 子任务计分方式
 	CalcMethod CalcMethod
-	workflow   workflow.Workflow
 	// "tests" _subtaskid, _score ("average", {number})
 	Tests table
 	// "subtask" _subtaskid, _score, _depend (separated by ",")
 	Subtasks table
+}
+
+// Problem data module
+type ProbData struct {
+	// Usually 100.
+	// Full score can be used to determine the point of testcase
+	Fullscore float64
+	workflow  workflow.Workflow
+	// pretest 常用于样例评测
+	Pretest ProbTestdata
+	// 额外数据例如 hack 数据
+	Extra ProbTestdata
+	// 题目本身数据
+	ProbTestdata
 	// "submission" configuration
 	Submission map[string]SubmLimit
 	// "static"
@@ -123,19 +134,17 @@ func (r *ProbData) Export(dir string) error {
 	if err := os.WriteFile(path.Join(dir, "workflow", "graph.json"), graph_json, 0644); err != nil {
 		return err
 	}
-	os.Mkdir(path.Join(dir, "data"), os.ModePerm)
-	os.Mkdir(path.Join(dir, "data", "tests"), os.ModePerm)
-	os.Mkdir(path.Join(dir, "data", "subtasks"), os.ModePerm)
-	os.Mkdir(path.Join(dir, "data", "static"), os.ModePerm)
 	os.Mkdir(path.Join(dir, "patch"), os.ModePerm)
-	os.Mkdir(path.Join(dir, "statement"), os.ModePerm)
 
-	var tests, subtasks table
 	var statement, static record
-	if tests, err = r.exportTable(r.Tests, dir, path.Join("data", "tests")); err != nil {
+	var testdata, pretest, extra ProbTestdata
+	if testdata, err = r.exportTestdata(r.ProbTestdata, dir, path.Join("data")); err != nil {
 		return err
 	}
-	if subtasks, err = r.exportTable(r.Subtasks, dir, path.Join("data", "subtasks")); err != nil {
+	if pretest, err = r.exportTestdata(r.Pretest, dir, path.Join("data", "pretest")); err != nil {
+		return err
+	}
+	if extra, err = r.exportTestdata(r.Extra, dir, path.Join("data", "extra")); err != nil {
 		return err
 	}
 	if static, err = r.exportRecord(0, r.Static, dir, path.Join("data", "static")); err != nil {
@@ -146,8 +155,9 @@ func (r *ProbData) Export(dir string) error {
 	}
 
 	// modify r from now
-	r.Tests = tests
-	r.Subtasks = subtasks
+	r.ProbTestdata = testdata
+	r.Pretest = pretest
+	r.Extra = extra
 	r.Static = static
 	r.Statement = statement
 
@@ -183,6 +193,7 @@ func copyRecord(rcd record) (res record) {
 
 func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res record, err error) {
 	logger.Printf("Export Record #%d %#v", id, dircd)
+	os.MkdirAll(path.Join(newroot, dircd), os.ModePerm)
 	res = make(record)
 	for field, val := range rcd {
 		if field[0] == '_' { // private field
@@ -200,6 +211,7 @@ func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res 
 
 func (r *ProbData) exportTable(tb table, newroot, dirtb string) (table, error) {
 	logger.Printf("Export Table %#v", dirtb)
+	os.MkdirAll(path.Join(newroot, dirtb), os.ModePerm)
 	res := copyTable(tb)
 
 	for i, record := range tb.Record {
@@ -214,6 +226,24 @@ func (r *ProbData) exportTable(tb table, newroot, dirtb string) (table, error) {
 		}
 		res.Record[i] = rcd
 	}
+	return res, nil
+}
+
+func (r *ProbData) exportTestdata(data ProbTestdata, newroot, dir string) (ProbTestdata, error) {
+	logger.Printf("Export Testdata %#v", dir)
+	os.MkdirAll(path.Join(newroot, dir), os.ModePerm)
+	res := newTestdata()
+	res.CalcMethod = data.CalcMethod
+	tests, err := r.exportTable(data.Tests, newroot, path.Join(dir, "tests"))
+	if err != nil {
+		return data, err
+	}
+	res.Tests = tests
+	subtasks, err := r.exportTable(data.Subtasks, newroot, path.Join(dir, "subtasks"))
+	if err != nil {
+		return data, err
+	}
+	res.Subtasks = subtasks
 	return res, nil
 }
 
@@ -263,11 +293,12 @@ func NewProbData(dir string) (*ProbData, error) {
 			WorkflowGraph: &graph,
 			Analyzer:      workflow.DefaultAnalyzer{},
 		},
-		Tests:      newTable(),
-		Subtasks:   newTable(),
-		Static:     make(record),
-		Submission: map[string]SubmLimit{},
-		Statement:  make(record),
+		ProbTestdata: newTestdata(),
+		Extra:        newTestdata(),
+		Pretest:      newTestdata(),
+		Static:       make(record),
+		Submission:   map[string]SubmLimit{},
+		Statement:    make(record),
 	}
 	if err := prob.Export(dir); err != nil {
 		return nil, err
@@ -308,4 +339,11 @@ func (r *ProbData) SetValFile(rcd record, field string, filename string) error {
 func (r *ProbData) Finalize() error {
 	logger.Printf("finalize %q", r.dir)
 	return os.RemoveAll(r.dir)
+}
+
+func newTestdata() ProbTestdata {
+	return ProbTestdata{
+		Tests:    newTable(),
+		Subtasks: newTable(),
+	}
 }

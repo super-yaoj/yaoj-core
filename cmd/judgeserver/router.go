@@ -11,7 +11,6 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
-	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 func Judge(ctx *gin.Context) {
@@ -48,7 +47,7 @@ func Judge(ctx *gin.Context) {
 	}
 	file.Close()
 	defer os.Remove(file.Name())
-	submission, err := problem.LoadSubm(file.Name(), tmpdir)
+	submission, err := problem.LoadSubm(file.Name())
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -66,7 +65,7 @@ func Judge(ctx *gin.Context) {
 
 	go func() {
 		if qry.Type == "custom" {
-			result, err := run.RunCustom(prob.Data(), tmpdir, *submission[workflow.Gsubm], *submission[workflow.Gtests])
+			result, err := run.RunCustom(prob.Data(), tmpdir, submission)
 			if err != nil {
 				logger.Printf("run problem: %v", err)
 				return
@@ -83,7 +82,7 @@ func Judge(ctx *gin.Context) {
 			// logger.Print("Submission: ", string(data))
 			// ctnt, _ := os.ReadFile((*submission[workflow.Gsubm])["source"])
 			// logger.Print("Submission: ", string(ctnt))
-			result, err := run.RunProblem(prob.Data(), tmpdir, *submission[workflow.Gsubm])
+			result, err := run.RunProblem(prob.Data(), tmpdir, submission)
 			if err != nil {
 				logger.Printf("run problem: %v", err)
 				return

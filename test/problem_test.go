@@ -9,7 +9,6 @@ import (
 	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
-	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 var probData *problem.ProbData
@@ -145,14 +144,14 @@ int main () {
 		t.Error(err)
 		return
 	}
-	subm2, err := problem.LoadSubm(path.Join("tmp", "subm.zip"), dir)
+	subm2, err := problem.LoadSubm(path.Join("tmp", "subm.zip"))
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	pp.Print(subm2)
 
-	res, err := run.RunProblem(theProb.Data(), t.TempDir(), *subm2[workflow.Gsubm])
+	res, err := run.RunProblem(theProb.Data(), t.TempDir(), subm2)
 	if err != nil {
 		t.Error(err)
 		return

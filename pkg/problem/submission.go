@@ -2,29 +2,49 @@ package problem
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // 存储文件的路径
-type Submission map[workflow.Groupname]*map[string]string
+type InmemoryFile struct {
+	Name string
+	Ctnt []byte
+}
 
-// 加入提交文件
-func (r Submission) Set(field string, name string) {
-	r.SetFile(workflow.Gsubm, field, name)
+type Submission map[workflow.Groupname]*map[string]InmemoryFile
+
+// 根据文件路径名加入提交文件
+func (r Submission) Set(field string, filename string) {
+	file, _ := os.Open(filename)
+	r.SetSource(workflow.Gsubm, field, filename, file)
+	file.Close()
 }
 
 // 加入文件（例如custom test就可以手动加test）
-func (r Submission) SetFile(group workflow.Groupname, field string, name string) {
+// group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
+// field: 字段名
+// name: 文件名（一般不带路径）
+// reader：文件内容
+func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
+	logger.Printf("SetSource in group %s's %q naming %q", group, field, name)
 	if r[group] == nil {
-		r[group] = &map[string]string{}
+		r[group] = &map[string]InmemoryFile{}
 	}
-	(*r[group])[field] = name
+	var buf bytes.Buffer
+	io.Copy(&buf, reader)
+	imfile := InmemoryFile{
+		Name: path.Base(name),
+		Ctnt: buf.Bytes()[:],
+	}
+	(*r[group])[field] = imfile
 }
 
 func (r Submission) DumpTo(writer io.Writer) error {
@@ -40,24 +60,16 @@ func (r Submission) DumpTo(writer io.Writer) error {
 		if pathmap[group] == nil {
 			pathmap[group] = &map[string]string{}
 		}
-		for field, name := range *data {
-			file, err := os.Open(name)
+		for field, imfile := range *data {
+			filename := string(group) + "-" + field + "-" + path.Base(imfile.Name)
+			fileInzip, err := w.Create(filename)
 			if err != nil {
 				return err
 			}
-
-			filename := string(group) + "-" + field + "-" + path.Base(name)
-			f, err := w.Create(filename)
+			_, err = fileInzip.Write(imfile.Ctnt)
 			if err != nil {
 				return err
 			}
-
-			_, err = io.Copy(f, file)
-			if err != nil {
-				return err
-			}
-
-			file.Close()
 			(*pathmap[group])[field] = filename
 		}
 	}
@@ -87,6 +99,32 @@ func (r Submission) DumpFile(name string) error {
 	return r.DumpTo(file)
 }
 
+// to path map
+func (r Submission) Download(dir string) (res map[workflow.Groupname]*map[string]string) {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	prefix := utils.RandomString(10)
+	res = map[workflow.Groupname]*map[string]string{}
+	for group, data := range r {
+		if data == nil {
+			continue
+		}
+		res[group] = &map[string]string{}
+		for field, imfile := range *data {
+			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field+"-"+imfile.Name)
+			err := os.WriteFile(filename, imfile.Ctnt, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+			(*res[group])[field] = filename
+		}
+	}
+	return res
+}
+
 // 提交文件配置
 type SubmConf map[string]SubmLimit
 
@@ -101,24 +139,27 @@ type SubmLimit struct {
 }
 
 // 解压
-func LoadSubm(name string, dir string) (Submission, error) {
-	err := unzipSource(name, dir)
+func LoadSubm(name string) (Submission, error) {
+	// Open the zip file
+	zipfile, err := zip.OpenReader(name)
 	if err != nil {
 		return nil, err
 	}
-	bconf, err := os.ReadFile(path.Join(dir, "_config.json"))
-	if err != nil {
-		return nil, err
-	}
+	defer zipfile.Close()
+
+	file, _ := zipfile.Open("_config.json")
+	confdata, _ := io.ReadAll(file)
 	var pathmap map[workflow.Groupname]*map[string]string
-	if err := json.Unmarshal(bconf, &pathmap); err != nil {
+	if err := json.Unmarshal(confdata, &pathmap); err != nil {
 		return nil, err
 	}
+
 	var res = Submission{}
 	for group, data := range pathmap {
-		res[group] = &map[string]string{}
 		for field, name := range *data {
-			(*res[group])[field] = path.Join(dir, name)
+			file, _ := zipfile.Open(name)
+			res.SetSource(group, field, name, file)
+			file.Close()
 		}
 	}
 	return res, nil

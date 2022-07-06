@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -72,6 +74,68 @@ type ProbTestdata struct {
 	Tests table
 	// "subtask" _subtaskid, _score, _depend (separated by ",")
 	Subtasks table
+}
+
+// Whether subtask is enabled.
+func (r *ProbTestdata) IsSubtask() bool {
+	return len(r.Subtasks.Field) > 0 && len(r.Subtasks.Record) > 0
+}
+
+func (r *ProbTestdata) Info() TestdataInfo {
+	res := TestdataInfo{
+		IsSubtask:  r.IsSubtask(),
+		Subtasks:   make([]SubtaskInfo, 0),
+		CalcMethod: r.CalcMethod,
+	}
+	if res.IsSubtask {
+		for i, task := range r.Subtasks.Record {
+			var tests = []TestInfo{}
+			for j, test := range r.Tests.Record {
+				if test["_subtaskid"] != task["_subtaskid"] {
+					continue
+				}
+				tests = append(tests, TestInfo{
+					Id:    j,
+					Field: copyRecord(test),
+				})
+			}
+
+			depend := []int{}
+			if task["_depend"] != "" {
+				deps := strings.Split(task["_depend"], ",")
+				for _, dep := range deps {
+					dep = strings.TrimSpace(dep)
+					for id, subt := range r.Subtasks.Record {
+						if subt["_subtaskid"] == dep {
+							depend = append(depend, id)
+						}
+					}
+				}
+			}
+			score, _ := strconv.ParseFloat(task["_score"], 64)
+			res.Subtasks = append(res.Subtasks, SubtaskInfo{
+				Id:        i,
+				Fullscore: score,
+				Field:     task,
+				Tests:     tests,
+				Depend:    depend,
+			})
+		}
+	} else {
+		var tests = []TestInfo{}
+		for j, test := range r.Tests.Record {
+			tests = append(tests, TestInfo{
+				Id:    j,
+				Field: copyRecord(test),
+			})
+		}
+
+		res.Subtasks = append(res.Subtasks, SubtaskInfo{
+			Fullscore: 0,
+			Tests:     tests,
+		})
+	}
+	return res
 }
 
 // Problem data module
@@ -304,11 +368,6 @@ func NewProbData(dir string) (*ProbData, error) {
 		return nil, err
 	}
 	return &prob, nil
-}
-
-// Whether subtask is enabled.
-func (r *ProbData) IsSubtask() bool {
-	return len(r.Subtasks.Field) > 0 && len(r.Subtasks.Record) > 0
 }
 
 // get the workflow

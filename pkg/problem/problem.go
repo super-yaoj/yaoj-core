@@ -3,8 +3,6 @@ package problem
 import (
 	"os"
 	"path"
-	"strconv"
-	"strings"
 
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"golang.org/x/text/language"
@@ -27,11 +25,16 @@ type Problem interface {
 	DataInfo() DataInfo
 }
 
-type DataInfo struct {
+type TestdataInfo struct {
 	IsSubtask  bool
-	Fullscore  float64
 	CalcMethod CalcMethod //计分方式
 	Subtasks   []SubtaskInfo
+}
+type DataInfo struct {
+	Fullscore float64
+	TestdataInfo
+	Pretest TestdataInfo
+	Extra   TestdataInfo
 	// 静态文件
 	Static map[string]string //other properties of data
 }
@@ -88,59 +91,11 @@ func (r *prob) SubmConf() SubmConf {
 
 func (r *prob) DataInfo() DataInfo {
 	var res = DataInfo{
-		IsSubtask:  r.data.IsSubtask(),
-		Fullscore:  r.data.Fullscore,
-		CalcMethod: r.data.CalcMethod,
-		Static:     r.data.Static,
-		Subtasks:   []SubtaskInfo{},
-	}
-	if res.IsSubtask {
-		for i, task := range r.data.Subtasks.Record {
-			var tests = []TestInfo{}
-			for j, test := range r.data.Tests.Record {
-				if test["_subtaskid"] != task["_subtaskid"] {
-					continue
-				}
-				tests = append(tests, TestInfo{
-					Id:    j,
-					Field: copyRecord(test),
-				})
-			}
-
-			depend := []int{}
-			if task["_depend"] != "" {
-				deps := strings.Split(task["_depend"], ",")
-				for _, dep := range deps {
-					dep = strings.TrimSpace(dep)
-					for id, subt := range r.data.Subtasks.Record {
-						if subt["_subtaskid"] == dep {
-							depend = append(depend, id)
-						}
-					}
-				}
-			}
-			score, _ := strconv.ParseFloat(task["_score"], 64)
-			res.Subtasks = append(res.Subtasks, SubtaskInfo{
-				Id:        i,
-				Fullscore: score,
-				Field:     task,
-				Tests:     tests,
-				Depend:    depend,
-			})
-		}
-	} else {
-		var tests = []TestInfo{}
-		for j, test := range r.data.Tests.Record {
-			tests = append(tests, TestInfo{
-				Id:    j,
-				Field: copyRecord(test),
-			})
-		}
-
-		res.Subtasks = append(res.Subtasks, SubtaskInfo{
-			Fullscore: r.data.Fullscore,
-			Tests:     tests,
-		})
+		TestdataInfo: r.data.ProbTestdata.Info(),
+		Pretest:      r.data.Pretest.Info(),
+		Extra:        r.data.Extra.Info(),
+		Fullscore:    r.data.Fullscore,
+		Static:       r.data.Static,
 	}
 	return res
 }

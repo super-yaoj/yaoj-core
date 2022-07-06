@@ -92,8 +92,6 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 	}
 	res := w.Analyze(w, runtimeNodes, fullscore)
 
-	// bs, _ := script.Exec("ls .").Bytes()
-	// logger.Print(string(bs))
 	return &res, nil
 }
 
@@ -121,7 +119,6 @@ func fileHash(name string) sha {
 		return sha{}
 	}
 	var b = hash.Sum(nil)
-	// pp.Print(b)
 	if len(b) != 32 {
 		pp.Print(b)
 		panic(b)
@@ -153,7 +150,6 @@ func (r *rtNode) calcHash() {
 		panic(b)
 	}
 	r.hash = *(*sha)(b)
-	// logger.Print(r.Node.ProcName, " ", r.hash)
 }
 
 func (r *rtNode) inputFullfilled() bool {

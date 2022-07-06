@@ -29,7 +29,8 @@ func testcaseOf(r *problem.ProbTestdata, subtaskid string) []map[string]string {
 	return res
 }
 
-// Run all testcase in the dir.
+// Run all testcase in the dir. User option mode to choose from original tests,
+// pretests and extra tests.
 func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode ...string) (*problem.Result, error) {
 	logger.Printf("run dir=%s", dir)
 
@@ -61,6 +62,27 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 		case "extra":
 			testdata = r.Extra
 		}
+	}
+
+	// accumulate subtask score
+	calcScore := func(sub_res *problem.SubtResult, score float64) bool {
+		switch testdata.CalcMethod {
+		case problem.Mmax:
+			if sub_res.Score < score {
+				sub_res.Score = score
+			}
+		case problem.Mmin:
+			if sub_res.Score > score {
+				sub_res.Score = score
+			}
+			if sub_res.Score == 0 { // 已经是 0 分了
+				return true
+				// skip = true // 后面的都没必要测了
+			}
+		default:
+			sub_res.Score += score
+		}
+		return false
 	}
 
 	if testdata.IsSubtask() {
@@ -131,29 +153,19 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 				}
 				sub_res.Testcase = append(sub_res.Testcase, data)
 
-				// accumulate subtask score
-				switch testdata.CalcMethod {
-				case problem.Mmax:
-					if sub_res.Score < data.Score {
-						sub_res.Score = data.Score
-					}
-				case problem.Mmin:
-					if sub_res.Score > data.Score {
-						sub_res.Score = data.Score
-					}
-					if sub_res.Score == 0 { // 已经是 0 分了
-						skip = true // 后面的都没必要测了
-					}
-				default:
-					sub_res.Score += data.Score
+				if calcScore(&sub_res, data.Score) {
+					skip = true
 				}
 			}
 			result.Subtask[id] = sub_res
 		}
 	} else {
 		sub_res := problem.SubtResult{
-			Testcase: []workflow.Result{},
+			Testcase:  []workflow.Result{},
+			Fullscore: r.Fullscore,
+			Score:     0,
 		}
+		var skip bool
 		for _, test := range testdata.Tests.Record {
 			inboundPath[workflow.Gtests] = toPathMap(r, test)
 
@@ -165,11 +177,23 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 				score = f
 			}
 
-			res, err := RunWorkflow(r.Workflow(), dir, inboundPath, score)
-			if err != nil {
-				return nil, err
+			var data workflow.Result
+			if skip {
+				data.Title = "Skipped"
+				data.Fullscore = score
+				data.Score = 0
+			} else {
+				res, err := RunWorkflow(r.Workflow(), dir, inboundPath, score)
+				if err != nil {
+					return nil, err
+				}
+				data = *res
 			}
-			sub_res.Testcase = append(sub_res.Testcase, *res)
+			sub_res.Testcase = append(sub_res.Testcase, data)
+
+			if calcScore(&sub_res, data.Score) {
+				skip = true
+			}
 		}
 		sub_res.Fullscore = r.Fullscore
 		result.Subtask = append(result.Subtask, sub_res)

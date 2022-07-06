@@ -11,7 +11,7 @@ import (
 //go:generate make -C yaoj-judger
 
 //#cgo CFLAGS: -I./yaoj-judger/include
-//#cgo LDFLAGS: -L./yaoj-judger -lyjudger
+//#cgo LDFLAGS: -L./yaoj-judger -lyjudger -lpthread
 //#include "./yaoj-judger/include/judger.h"
 //#include <stdlib.h>
 import "C"

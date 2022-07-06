@@ -81,6 +81,7 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 				Title:   "message",
 				Content: name + ": " + node.Result.Msg,
 			})
+			res.File = append(res.File, autoFileDisplay(node)...)
 			return res
 		}
 	}
@@ -97,48 +98,30 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 				Title:   "message",
 				Content: name + ": " + node.Result.Msg,
 			})
+			res.File = append(res.File, autoFileDisplay(node)...)
 			return res
 		}
 	}
 
-	for name, node := range nodes {
+	// key node info
+	for _, node := range nodes {
 		if node.Result == nil {
 			continue
 		}
-		labels := processor.OutputLabel(node.ProcName)
-		list := []ResultFileDisplay{}
-		for i, label := range labels {
-			list = append(list, FileDisplay(node.Output[i], label, 5000))
-		}
-		list = append(list, ResultFileDisplay{
-			Title:   "message",
-			Content: name + ": " + node.Result.Msg,
-		})
 
 		if node.Key {
 			res.ResultMeta.Memory += utils.ByteValue(*node.Result.Memory)
 			res.ResultMeta.Time += *node.Result.CpuTime
-			res.File = append(res.File, list...)
 		}
 	}
 
-	for name, node := range nodes {
+	// common error
+	for _, node := range nodes {
 		if node.Result == nil {
 			continue
 		}
 		if node.Result.Code != processor.Ok {
-			labels := processor.OutputLabel(node.ProcName)
-			list := []ResultFileDisplay{}
-			if !node.Key { // 如果是关键结点那么文件啥的已经被展示了
-				for i, label := range labels {
-					list = append(list, FileDisplay(node.Output[i], label, 5000))
-				}
-				list = append(list, ResultFileDisplay{
-					Title:   "message",
-					Content: name + ": " + node.Result.Msg,
-				})
-			}
-
+			res.File = append(res.File, autoFileDisplay(node)...)
 			if node.ProcName == "checker:testlib" {
 				type Result struct {
 					XMLName xml.Name `xml:"result"`
@@ -158,8 +141,6 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 				}
 				d.Decode(&result)
 
-				res.File = append(res.File, list...)
-				res.File = append(res.File, FileDisplay(node.Input[3], "answer", 5000))
 				if result.Outcome != "accepted" {
 					res.Title = "Wrong Answer"
 					res.Score = 0
@@ -186,17 +167,41 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 
 				res.Title = title
 				res.Score = 0
-				res.File = append(res.File, list...)
 				return res
 			}
-			// system error
-			res.Title = "System Error"
-			res.Score = 0
-			res.File = append(res.File, list...)
+			panic("system error")
+		}
+	}
+	// accepted
+	for _, node := range nodes {
+		if node.Result == nil {
+			continue
+		}
+		if node.Attr["dependon"] == "user" {
+			res.File = append(res.File, autoFileDisplay(node)...)
 			return res
 		}
 	}
 	return res
+}
+
+func autoFileDisplay(node RuntimeNode) []ResultFileDisplay {
+	switch node.ProcName {
+	case "checker:hcmp":
+		return []ResultFileDisplay{FileDisplay(node.Input[0], "output", 5000), FileDisplay(node.Input[1], "answer", 5000)}
+	case "checker:testlib":
+		return []ResultFileDisplay{FileDisplay(node.Input[2], "output", 5000), FileDisplay(node.Input[3], "answer", 5000)}
+	case "compiler", "compiler:testlib", "compiler:auto":
+		return []ResultFileDisplay{FileDisplay(node.Output[1], "compile log", 5000)}
+	case "inputmaker":
+		return []ResultFileDisplay{FileDisplay(node.Input[0], "input source", 5000)}
+	case "generator:testlib":
+		return []ResultFileDisplay{FileDisplay(node.Input[1], "generator arguments", 5000)}
+	case "runner:fileio", "runner:stdio":
+		return []ResultFileDisplay{FileDisplay(node.Output[1], "stderr", 5000)}
+	default:
+		return nil
+	}
 }
 
 var _ Analyzer = DefaultAnalyzer{}

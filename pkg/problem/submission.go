@@ -27,15 +27,8 @@ func (r Submission) SetFile(group workflow.Groupname, field string, name string)
 	(*r[group])[field] = name
 }
 
-// 打包
-func (r Submission) DumpFile(name string) error {
-	file, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	w := zip.NewWriter(file)
+func (r Submission) DumpTo(writer io.Writer) error {
+	w := zip.NewWriter(writer)
 	defer w.Close()
 
 	var pathmap = map[workflow.Groupname]*map[string]string{}
@@ -83,6 +76,30 @@ func (r Submission) DumpFile(name string) error {
 	return nil
 }
 
+// 打包
+func (r Submission) DumpFile(name string) error {
+	file, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return r.DumpTo(file)
+}
+
+// 提交文件配置
+type SubmConf map[string]SubmLimit
+
+// limitation for any file submitted
+type SubmLimit struct {
+	// 接受的语言，nil 表示所有语言
+	Langs []utils.LangTag
+	// 接受哪些类型的文件，必须设置值
+	Accepted utils.CtntType
+	// 文件大小，单位 byte
+	Length uint32
+}
+
 // 解压
 func LoadSubm(name string, dir string) (Submission, error) {
 	err := unzipSource(name, dir)
@@ -105,17 +122,4 @@ func LoadSubm(name string, dir string) (Submission, error) {
 		}
 	}
 	return res, nil
-}
-
-// 提交文件配置
-type SubmConf map[string]SubmLimit
-
-// limitation for any file submitted
-type SubmLimit struct {
-	// 接受的语言，nil 表示所有语言
-	Langs []utils.LangTag
-	// 接受哪些类型的文件，必须设置值
-	Accepted utils.CtntType
-	// 文件大小，单位 byte
-	Length uint32
 }

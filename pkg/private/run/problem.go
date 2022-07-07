@@ -172,7 +172,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 					data.Fullscore = test_score
 					data.Score = 0
 				} else {
-					res, err := RunWorkflow(r.Workflow(), dir, inboundPath, test_score)
+					res, err := runWorkflow(r.Workflow(), dir, inboundPath, test_score)
 					if err != nil {
 						return nil, err
 					}
@@ -213,7 +213,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 				data.Fullscore = score
 				data.Score = 0
 			} else {
-				res, err := RunWorkflow(r.Workflow(), dir, inboundPath, score)
+				res, err := runWorkflow(r.Workflow(), dir, inboundPath, score)
 				if err != nil {
 					return nil, err
 				}
@@ -231,21 +231,10 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	return &result, nil
 }
 
-// Custom test 即提供测试数据和提交数据
-// 大部分 custom test 不关注答案正确性，只关注是否 MLE 或者 TLE 之类。
-// Subtask 数据取第一个subtask的数据
-func RunCustom(r *problem.ProbData, dir string, subm problem.Submission) (*workflow.Result, error) {
-	logger.Printf("run custom dir=%s", dir)
-
-	inboundPath := subm.Download(dir)
-	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
-	if !r.Tests.Fields().Check(*inboundPath[workflow.Gtests]) {
-		return nil, fmt.Errorf("invalid test data")
-	}
-
-	if r.IsSubtask() {
-		inboundPath[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
-	}
-
-	return RunWorkflow(r.Workflow(), dir, inboundPath, r.Fullscore)
+// mutex
+func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Groupname]*map[string]string,
+	fullscore float64) (*workflow.Result, error) {
+	runProbLock.Lock()
+	defer runProbLock.Unlock()
+	return runWorkflow(w, dir, inboundPath, fullscore)
 }

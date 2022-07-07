@@ -17,7 +17,7 @@ import (
 // perform a workflow in a directory.
 // inboundPath: map[datagroup_name]*map[field]filename
 // do not remove cache when running workflow!
-func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[string]string,
+func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[string]string,
 	fullscore float64) (*wk.Result, error) {
 	nodes := runtimeNodes(w.Node)
 

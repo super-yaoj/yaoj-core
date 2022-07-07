@@ -63,30 +63,18 @@ func Judge(ctx *gin.Context) {
 		tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
 		defer os.RemoveAll(tmpdir)
 
-		if qry.Mode == "custom" { // custom test
-			result, err := run.RunCustom(prob.Data(), tmpdir, submission)
-			if err != nil {
-				logger.Printf("run problem: %v", err)
-				return
-			}
-
-			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
-			if err != nil {
-				logger.Printf("callback request error: %v", err)
-			}
-		} else { // run corresponding mode
-			result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
-			if err != nil {
-				logger.Printf("run problem: %v", err)
-				return
-			}
-			logger.Print(result.Brief())
-
-			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
-			if err != nil {
-				logger.Printf("callback request error: %v", err)
-			}
+		result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
+		if err != nil {
+			logger.Printf("run problem: %v", err)
+			return
 		}
+		logger.Print(result.Brief())
+
+		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+		if err != nil {
+			logger.Printf("callback request error: %v", err)
+		}
+
 		logger.Printf("Total judging time: %v", time.Since(start_time))
 	}()
 }

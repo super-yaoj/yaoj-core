@@ -5,20 +5,23 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 func Judge(ctx *gin.Context) {
 	type Judge struct {
 		Callback string `form:"cb" binding:"required"`
 		Checksum string `form:"sum" binding:"required"`
-		// default: options: "custom" "pretest" "extra"
+		// default: options: "pretest" "extra"
 		Mode string `form:"mode"`
 	}
 	var qry Judge
@@ -36,19 +39,9 @@ func Judge(ctx *gin.Context) {
 		return
 	}
 
-	// remove after judging
-	tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
-
 	// load submission
-	file, _ := os.CreateTemp(os.TempDir(), "judge-*")
-	_, err = io.Copy(file, ctx.Request.Body)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	file.Close()
-	defer os.Remove(file.Name())
-	submission, err := problem.LoadSubm(file.Name())
+	data, _ := io.ReadAll(ctx.Request.Body)
+	submission, err := problem.LoadSubmData(data)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -66,6 +59,10 @@ func Judge(ctx *gin.Context) {
 
 	go func() {
 		start_time := time.Now()
+
+		tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
+		defer os.RemoveAll(tmpdir)
+
 		if qry.Mode == "custom" { // custom test
 			result, err := run.RunCustom(prob.Data(), tmpdir, submission)
 			if err != nil {
@@ -91,8 +88,49 @@ func Judge(ctx *gin.Context) {
 			}
 		}
 		logger.Printf("Total judging time: %v", time.Since(start_time))
-		os.RemoveAll(tmpdir)
 	}()
+}
+
+func CustomTest(ctx *gin.Context) {
+	type CustomTest struct {
+		Callback string `form:"cb" binding:"required"`
+	}
+	var qry CustomTest
+	err := ctx.BindQuery(&qry)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// load submission
+	data, _ := io.ReadAll(ctx.Request.Body)
+	submission, err := problem.LoadSubmData(data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	tmpdir, _ := os.MkdirTemp(os.TempDir(), "custom-*")
+	defer os.RemoveAll(tmpdir)
+
+	os.WriteFile(path.Join(tmpdir, "_limit"),
+		[]byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
+
+	pathmap := submission.Download(tmpdir)
+	pathmap[workflow.Gstatic] = &map[string]string{
+		"limit": path.Join(tmpdir, "_limit"),
+	}
+
+	result, err := run.RunWorkflow(*customTestWkfl, tmpdir, pathmap, 100)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+	if err != nil {
+		logger.Printf("callback request error: %v", err)
+	}
+	pp.Print(result)
 }
 
 func Sync(ctx *gin.Context) {
@@ -137,4 +175,25 @@ func Log(ctx *gin.Context) {
 		"message": "ok",
 		"logs":    buflog.Tail(),
 	})
+}
+
+var customTestWkfl *workflow.Workflow
+
+func init() {
+	// custom test workflow
+	var customTestWk workflow.Builder
+	customTestWk.SetNode("compile", "compiler:auto", false, false)
+	customTestWk.SetNode("run", "runner:stdio", true, false)
+	customTestWk.AddInbound(workflow.Gsubm, "source", "compile", "source")
+	customTestWk.AddInbound(workflow.Gsubm, "input", "run", "stdin")
+	customTestWk.AddInbound(workflow.Gstatic, "limit", "run", "limit")
+	customTestWk.AddEdge("compile", "result", "run", "executable")
+	graph, err := customTestWk.WorkflowGraph()
+	if err != nil {
+		panic(err)
+	}
+	customTestWkfl = &workflow.Workflow{
+		WorkflowGraph: graph,
+		Analyzer:      workflow.DefaultAnalyzer{},
+	}
 }

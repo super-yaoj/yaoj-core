@@ -164,3 +164,29 @@ func LoadSubm(name string) (Submission, error) {
 	}
 	return res, nil
 }
+
+func LoadSubmData(data []byte) (Submission, error) {
+	// Open the zip file
+	reader := bytes.NewReader(data)
+	zipfile, err := zip.NewReader(reader, int64(len(data)))
+	if err != nil {
+		return nil, err
+	}
+
+	file, _ := zipfile.Open("_config.json")
+	confdata, _ := io.ReadAll(file)
+	var pathmap map[workflow.Groupname]*map[string]string
+	if err := json.Unmarshal(confdata, &pathmap); err != nil {
+		return nil, err
+	}
+
+	var res = Submission{}
+	for group, data := range pathmap {
+		for field, name := range *data {
+			file, _ := zipfile.Open(name)
+			res.SetSource(group, field, name, file)
+			file.Close()
+		}
+	}
+	return res, nil
+}

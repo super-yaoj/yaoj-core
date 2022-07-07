@@ -70,6 +70,7 @@ func main() {
 
 	r := gin.Default()
 	r.POST("/judge", Judge)
+	r.POST("/custom", CustomTest)
 	r.POST("/sync", Sync)
 	r.GET("/log", Log)
 

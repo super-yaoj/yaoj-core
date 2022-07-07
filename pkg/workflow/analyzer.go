@@ -191,9 +191,9 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 func autoFileDisplay(node RuntimeNode) []ResultFileDisplay {
 	switch node.ProcName {
 	case "checker:hcmp":
-		return []ResultFileDisplay{FileDisplay(node.Input[0], "output", 5000), FileDisplay(node.Input[1], "answer", 5000)}
+		return []ResultFileDisplay{FileDisplay(node.Input[1], "answer", 5000)}
 	case "checker:testlib":
-		return []ResultFileDisplay{FileDisplay(node.Input[2], "output", 5000), FileDisplay(node.Input[3], "answer", 5000)}
+		return []ResultFileDisplay{FileDisplay(node.Input[3], "answer", 5000)}
 	case "compiler", "compiler:testlib", "compiler:auto":
 		return []ResultFileDisplay{FileDisplay(node.Output[1], "compile log", 5000)}
 	case "inputmaker":
@@ -201,7 +201,7 @@ func autoFileDisplay(node RuntimeNode) []ResultFileDisplay {
 	case "generator:testlib":
 		return []ResultFileDisplay{FileDisplay(node.Input[1], "generator arguments", 5000)}
 	case "runner:fileio", "runner:stdio":
-		return []ResultFileDisplay{FileDisplay(node.Output[1], "stderr", 5000)}
+		return []ResultFileDisplay{FileDisplay(node.Output[0], "stdout", 5000), FileDisplay(node.Output[1], "stderr", 5000)}
 	default:
 		return nil
 	}

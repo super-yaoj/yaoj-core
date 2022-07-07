@@ -20,6 +20,11 @@ func (r RunnerStdio) Label() (inputlabel []string, outputlabel []string) {
 	return []string{"executable", "stdin", "limit"}, []string{"stdout", "stderr", "judgerlog"}
 }
 func (r RunnerStdio) Run(input []string, output []string) *Result {
+	// make it executable
+	file, _ := os.Open(input[0])
+	file.Chmod(0744)
+	file.Close()
+
 	lim, err := os.ReadFile(input[2])
 	if err != nil {
 		return &Result{

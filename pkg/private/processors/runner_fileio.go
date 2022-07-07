@@ -24,6 +24,11 @@ func (r RunnerFileio) Label() (inputlabel []string, outputlabel []string) {
 }
 
 func (r RunnerFileio) Run(input []string, output []string) *Result {
+	// make it executable
+	file, _ := os.Open(input[0])
+	file.Chmod(0744)
+	file.Close()
+
 	lim, err := os.ReadFile(input[2])
 	if err != nil {
 		return &Result{

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
@@ -64,6 +65,7 @@ func Judge(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 
 	go func() {
+		start_time := time.Now()
 		if qry.Mode == "custom" { // custom test
 			result, err := run.RunCustom(prob.Data(), tmpdir, submission)
 			if err != nil {
@@ -88,6 +90,7 @@ func Judge(ctx *gin.Context) {
 				logger.Printf("callback request error: %v", err)
 			}
 		}
+		logger.Printf("Total judging time: %v", time.Since(start_time))
 		os.RemoveAll(tmpdir)
 	}()
 }

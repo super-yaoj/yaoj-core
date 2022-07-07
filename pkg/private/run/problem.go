@@ -177,7 +177,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			inboundPath[workflow.Gtests] = toPathMap(r, test)
 
 			score := r.Fullscore // Mmin or Mmax
-			if testdata.CalcMethod == problem.Mmin {
+			if testdata.CalcMethod == problem.Msum {
 				score = r.Fullscore / float64(len(testdata.Tests.Record))
 			}
 			if f, err := strconv.ParseFloat(test["_score"], 64); err == nil {

@@ -236,5 +236,18 @@ func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Group
 	fullscore float64) (*workflow.Result, error) {
 	runProbLock.Lock()
 	defer runProbLock.Unlock()
+
+	logger.Printf("run workflow directly dir=%s", dir)
+
+	if gcache == nil {
+		return nil, fmt.Errorf("global cache not initialized")
+	}
+
+	gcache.Resize(CacheSize)
+
+	// clear cache
+	pOutputCache.Reset()
+	pResultCache.Reset()
+
 	return runWorkflow(w, dir, inboundPath, fullscore)
 }

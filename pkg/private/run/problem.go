@@ -49,11 +49,6 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	inboundPath := subm.Download(dir)
 	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
 
-	var result = problem.Result{
-		IsSubtask: r.IsSubtask(),
-		Subtask:   []problem.SubtResult{},
-	}
-
 	testdata := r.ProbTestdata
 	if len(mode) > 0 {
 		switch mode[0] {
@@ -62,6 +57,12 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 		case "extra":
 			testdata = r.Extra
 		}
+	}
+
+	var result = problem.Result{
+		IsSubtask:  r.IsSubtask(),
+		CalcMethod: testdata.CalcMethod,
+		Subtask:    []problem.SubtResult{},
 	}
 
 	// accumulate subtask score

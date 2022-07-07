@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -130,7 +131,43 @@ const (
 	Lgo
 	Ljava
 	Lc
+	Lplain
 )
+
+// 根据字符串推断程序语言
+func SourceLang(s string) LangTag {
+	if strings.Contains(s, "java") {
+		return Ljava
+	}
+	if strings.Contains(s, "cpp") {
+		if strings.Contains(s, fmt.Sprint(11)) {
+			return Lcpp11
+		}
+		if strings.Contains(s, fmt.Sprint(14)) {
+			return Lcpp14
+		}
+		if strings.Contains(s, fmt.Sprint(17)) {
+			return Lcpp17
+		}
+		if strings.Contains(s, fmt.Sprint(20)) {
+			return Lcpp20
+		}
+		return Lcpp
+	}
+	if strings.Contains(s, "py") {
+		if strings.Contains(s, fmt.Sprint(2)) {
+			return Lpython2
+		}
+		return Lpython3
+	}
+	if strings.Contains(s, "go") {
+		return Lgo
+	}
+	if strings.Contains(s, "c") {
+		return Lc
+	}
+	return Lplain
+}
 
 type CtntType int
 

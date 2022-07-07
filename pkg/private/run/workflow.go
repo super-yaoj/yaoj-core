@@ -59,10 +59,10 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			return fmt.Errorf("input not fullfilled")
 		}
 		node.calcHash()
-		if gOutputCache.Has(node.hash) {
+		if pOutputCache.Has(node.hash) {
 			logger.Printf("Run node[%s] (cached)", id)
-			cache_outputs := gOutputCache.Get(node.hash)[:]
-			result := gResultCache.Get(node.hash)
+			cache_outputs := pOutputCache.Get(node.hash)[:]
+			result := pResultCache.Get(node.hash)
 			node.Output = cache_outputs
 			node.Result = &result
 		} else {
@@ -73,8 +73,8 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			result := node.Processor().Run(node.Input, node.Output)
 
 			node.Result = result
-			gOutputCache.Set(node.hash, node.Output)
-			gResultCache.Set(node.hash, *result)
+			pOutputCache.Set(node.hash, node.Output)
+			pResultCache.Set(node.hash, *result)
 		}
 		nodes[id] = node
 		for _, edge := range w.EdgeFrom(id) {

@@ -5,8 +5,10 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
@@ -29,9 +31,21 @@ func testcaseOf(r *problem.ProbTestdata, subtaskid string) []map[string]string {
 	return res
 }
 
+var pOutputCache = inMemoryCache[[]string]{
+	data: map[sha][]string{},
+}
+var pResultCache = inMemoryCache[processor.Result]{
+	data: map[sha]processor.Result{},
+}
+
+var runProbLock sync.Mutex
+
 // Run all testcase in the dir. User option mode to choose from original tests,
 // pretests and extra tests.
 func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode ...string) (*problem.Result, error) {
+	runProbLock.Lock()
+	defer runProbLock.Unlock()
+
 	logger.Printf("run dir=%s", dir)
 
 	// check submission
@@ -42,8 +56,8 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	}
 
 	// clear cache
-	gOutputCache.Reset()
-	gResultCache.Reset()
+	pOutputCache.Reset()
+	pResultCache.Reset()
 
 	// download submission
 	inboundPath := subm.Download(dir)

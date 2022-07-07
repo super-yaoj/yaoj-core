@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
@@ -98,27 +97,33 @@ func CustomTest(ctx *gin.Context) {
 		return
 	}
 
-	tmpdir, _ := os.MkdirTemp(os.TempDir(), "custom-*")
-	defer os.RemoveAll(tmpdir)
+	// ready to judge
+	ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 
-	os.WriteFile(path.Join(tmpdir, "_limit"),
-		[]byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
+	go func() {
+		tmpdir, _ := os.MkdirTemp(os.TempDir(), "custom-*")
+		defer os.RemoveAll(tmpdir)
 
-	pathmap := submission.Download(tmpdir)
-	pathmap[workflow.Gstatic] = &map[string]string{
-		"limit": path.Join(tmpdir, "_limit"),
-	}
+		os.WriteFile(path.Join(tmpdir, "_limit"),
+			[]byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
 
-	result, err := run.RunWorkflow(*customTestWkfl, tmpdir, pathmap, 100)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
-	if err != nil {
-		logger.Printf("callback request error: %v", err)
-	}
-	pp.Print(result)
+		pathmap := submission.Download(tmpdir)
+		pathmap[workflow.Gstatic] = &map[string]string{
+			"limit": path.Join(tmpdir, "_limit"),
+		}
+
+		result, err := run.RunWorkflow(*customTestWkfl, tmpdir, pathmap, 100)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+		if err != nil {
+			logger.Printf("callback request error: %v", err)
+		}
+		logger.Printf("custom test: %f/%f", result.Score, result.Fullscore)
+		// pp.Print(result)
+	}()
 }
 
 func Sync(ctx *gin.Context) {

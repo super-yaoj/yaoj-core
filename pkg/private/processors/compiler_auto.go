@@ -35,7 +35,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 		)
 	case ".cpp", ".cc":
 		// detect c++ version
-		verArg := "--std=c++20"
+		verArg := "--std=c++2a"
 		switch utils.SourceLang(sub_ext) {
 		case utils.Lcpp11:
 			verArg = "--std=c++11"
@@ -44,7 +44,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 		case utils.Lcpp17:
 			verArg = "--std=c++17"
 		case utils.Lcpp20:
-			verArg = "--std=c++20"
+			verArg = "--std=c++2a"
 		}
 
 		logger.Printf("auto compile source lang ver: %s", verArg)

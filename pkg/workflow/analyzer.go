@@ -183,7 +183,6 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 		}
 		if node.Attr["dependon"] == "user" {
 			res.File = append(res.File, autoFileDisplay(node)...)
-			return res
 		}
 	}
 	return res

@@ -107,7 +107,6 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			subtask := records[id]
 			sub_res := problem.SubtResult{
 				Subtaskid: subtask["_subtaskid"],
-				Score:     0,
 				Testcase:  []workflow.Result{},
 			}
 
@@ -130,7 +129,12 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			}
 			sub_res.Fullscore = score
 
-			for _, test := range tests {
+			if testdata.CalcMethod == problem.Mmin {
+				sub_res.Score = sub_res.Fullscore
+			}
+
+			for tid, test := range tests {
+				logger.Printf("test #%d", tid)
 				inboundPath[workflow.Gtests] = toPathMap(r, test)
 
 				// calc test fullscore
@@ -164,6 +168,9 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			Testcase:  []workflow.Result{},
 			Fullscore: r.Fullscore,
 			Score:     0,
+		}
+		if testdata.CalcMethod == problem.Mmin {
+			sub_res.Score = sub_res.Fullscore
 		}
 		var skip bool
 		for _, test := range testdata.Tests.Record {

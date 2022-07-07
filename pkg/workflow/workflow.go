@@ -33,6 +33,8 @@ type Node struct {
 	ProcName string
 	// key node is attached importance by Analyzer
 	Key bool
+	// whether caching its result in global cache
+	Cache bool
 }
 
 type WorkflowGraph struct {

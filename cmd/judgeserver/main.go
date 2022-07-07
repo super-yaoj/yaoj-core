@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 )
 
@@ -46,10 +47,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	r := gin.Default()
-	r.POST("/judge", Judge)
-	r.POST("/sync", Sync)
-	r.GET("/log", Log)
+	run.CacheInit(cachedir)
 
 	// handle signal
 	sigs := make(chan os.Signal, 1)
@@ -57,14 +55,23 @@ func main() {
 	go func() {
 		sig := <-sigs
 		fmt.Printf("\nhandle signal %q\n", sig)
+
 		storage.Map.Range(func(key, value any) bool {
 			prob := value.(problem.Problem)
 			prob.Data().Finalize()
 			return true
 		})
+
+		os.RemoveAll(cachedir)
+
 		fmt.Printf("done.\n")
 		os.Exit(0)
 	}()
+
+	r := gin.Default()
+	r.POST("/judge", Judge)
+	r.POST("/sync", Sync)
+	r.GET("/log", Log)
 
 	err := r.Run(address) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	if err != nil {

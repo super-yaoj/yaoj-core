@@ -150,6 +150,8 @@ int main () {
 	}
 	pp.Print(subm2)
 
+	run.CacheInit(t.TempDir())
+
 	res, err := run.RunProblem(theProb.Data(), t.TempDir(), subm2)
 	if err != nil {
 		t.Error(err)
@@ -161,6 +163,13 @@ int main () {
 a, b = map(int, input().split())
 print(a + b)
 	`)))
+	res, err = run.RunProblem(theProb.Data(), t.TempDir(), subm2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(res.Brief())
+	// test lv2 cache
 	res, err = run.RunProblem(theProb.Data(), t.TempDir(), subm2)
 	if err != nil {
 		t.Error(err)

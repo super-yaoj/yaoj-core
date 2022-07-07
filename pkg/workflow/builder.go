@@ -24,11 +24,12 @@ func (r *Builder) tryInit() {
 		r.inbound = [][4]string{}
 	}
 }
-func (r *Builder) SetNode(name string, procName string, key bool) {
+func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 	r.tryInit()
 	r.node[name] = Node{
 		ProcName: procName,
 		Key:      key,
+		Cache:    cache,
 	}
 }
 

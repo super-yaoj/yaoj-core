@@ -38,6 +38,8 @@ var pResultCache = inMemoryCache[processor.Result]{
 	data: map[sha]processor.Result{},
 }
 
+var CacheSize = 1000
+
 var runProbLock sync.Mutex
 
 // Run all testcase in the dir. User option mode to choose from original tests,
@@ -47,6 +49,12 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	defer runProbLock.Unlock()
 
 	logger.Printf("run dir=%s", dir)
+
+	if gcache == nil {
+		return nil, fmt.Errorf("global cache not initialized")
+	}
+
+	gcache.Resize(CacheSize)
 
 	// check submission
 	for k := range r.Submission {

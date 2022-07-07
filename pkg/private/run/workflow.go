@@ -16,6 +16,7 @@ import (
 
 // perform a workflow in a directory.
 // inboundPath: map[datagroup_name]*map[field]filename
+// do not remove cache when running workflow!
 func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[string]string,
 	fullscore float64) (*wk.Result, error) {
 	nodes := runtimeNodes(w.Node)
@@ -59,13 +60,25 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			return fmt.Errorf("input not fullfilled")
 		}
 		node.calcHash()
-		if pOutputCache.Has(node.hash) {
-			logger.Printf("Run node[%s] (cached)", id)
+		if pOutputCache.Has(node.hash) { // cache level 1
+			logger.Printf("Run node[%s] (cached lv 1)", id)
 			cache_outputs := pOutputCache.Get(node.hash)[:]
 			result := pResultCache.Get(node.hash)
 			node.Output = cache_outputs
 			node.Result = &result
-		} else {
+		} else if gcache.Has(node.hash, "@result") { // cache level 2
+			logger.Printf("Run node[%s] (cached lv 2)", id)
+			result := processor.Result{}
+			err := result.Unserialize(gcache.Get(node.hash, "@result"))
+			if err != nil {
+				return err
+			}
+			node.Output = make([]string, 0)
+			for _, label := range processor.OutputLabel(node.ProcName) {
+				filename := gcache.GetSource(node.hash, label)
+				node.Output = append(node.Output, filename)
+			}
+		} else { // no cache
 			logger.Printf("Run node[%s] no cache", id)
 			for i := 0; i < len(node.Output); i++ {
 				node.Output[i] = utils.RandomString(10)
@@ -75,6 +88,13 @@ func RunWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			node.Result = result
 			pOutputCache.Set(node.hash, node.Output)
 			pResultCache.Set(node.hash, *result)
+
+			if node.Cache {
+				gcache.Set(node.hash, "@result", result.Serialize())
+				for i, label := range processor.OutputLabel(node.ProcName) {
+					gcache.SetSource(node.hash, label, node.Output[i])
+				}
+			}
 		}
 		nodes[id] = node
 		for _, edge := range w.EdgeFrom(id) {
@@ -143,6 +163,7 @@ func (r *rtNode) calcHash() {
 		hashval := fileHash(path)
 		hash.Write(hashval[:])
 	}
+	hash.Write([]byte(r.ProcName))
 	var b = hash.Sum(nil)
 	// pp.Print(b)
 	if len(b) != 32 {

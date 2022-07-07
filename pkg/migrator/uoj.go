@@ -190,10 +190,10 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	prob.Statement["_ol"] = conf["output_limit"]
 
 	var builder workflow.Builder
-	builder.SetNode("compile_source", "compiler:auto", false)
-	builder.SetNode("compile_checker", "compiler:testlib", false)
-	builder.SetNode("check", "checker:testlib", false)
-	builder.SetNode("run", "runner:stdio", true)
+	builder.SetNode("compile_source", "compiler:auto", false, true)
+	builder.SetNode("compile_checker", "compiler:testlib", false, true)
+	builder.SetNode("check", "checker:testlib", false, false)
+	builder.SetNode("run", "runner:stdio", true, false)
 	builder.AddInbound(workflow.Gstatic, "limitation", "run", "limit")
 	builder.AddInbound(workflow.Gstatic, "checker", "compile_checker", "source")
 	builder.AddInbound(workflow.Gsubm, "source", "compile_source", "source")

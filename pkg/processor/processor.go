@@ -2,6 +2,8 @@
 package processor
 
 import (
+	"bytes"
+	"encoding/gob"
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -36,4 +38,24 @@ type Result struct {
 	RealTime, CpuTime *time.Duration
 	Memory            *utils.ByteValue
 	Msg               string
+}
+
+func (r Result) Serialize() []byte {
+	var b bytes.Buffer
+	encoder := gob.NewEncoder(&b)
+	err := encoder.Encode(r)
+	if err != nil {
+		panic(err)
+	}
+	return b.Bytes()[:]
+}
+
+func (r *Result) Unserialize(data []byte) error {
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(r)
+	return err
+}
+
+func init() {
+	gob.Register(Result{})
 }

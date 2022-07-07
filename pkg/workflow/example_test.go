@@ -8,9 +8,9 @@ import (
 
 func ExampleBuilder() {
 	var b workflow.Builder
-	b.SetNode("compile", "compiler", false)
-	b.SetNode("run", "runner:stdio", true)
-	b.SetNode("check", "checker:hcmp", false)
+	b.SetNode("compile", "compiler", false, true)
+	b.SetNode("run", "runner:stdio", true, false)
+	b.SetNode("check", "checker:hcmp", false, false)
 	b.AddInbound(workflow.Gsubm, "source", "compile", "source")
 	b.AddInbound(workflow.Gstatic, "compilescript", "compile", "script")
 	b.AddInbound(workflow.Gstatic, "limitation", "run", "limit")

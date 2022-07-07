@@ -11,9 +11,9 @@ var wkflGraph workflow.WorkflowGraph
 
 func MakeWorkflowGraph(t *testing.T) {
 	var b workflow.Builder
-	b.SetNode("compile", "compiler:auto", false)
-	b.SetNode("run", "runner:stdio", true)
-	b.SetNode("check", "checker:hcmp", false)
+	b.SetNode("compile", "compiler:auto", false, true)
+	b.SetNode("run", "runner:stdio", true, false)
+	b.SetNode("check", "checker:hcmp", false, false)
 	b.AddInbound(workflow.Gsubm, "source", "compile", "source")
 	b.AddInbound(workflow.Gstatic, "limitation", "run", "limit")
 	b.AddInbound(workflow.Gtests, "input", "run", "stdin")

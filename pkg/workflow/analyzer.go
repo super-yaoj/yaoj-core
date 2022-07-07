@@ -110,8 +110,12 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 		}
 
 		if node.Key {
-			res.ResultMeta.Memory += utils.ByteValue(*node.Result.Memory)
-			res.ResultMeta.Time += *node.Result.CpuTime
+			if node.Result.Memory != nil {
+				res.ResultMeta.Memory += utils.ByteValue(*node.Result.Memory)
+			}
+			if node.Result.CpuTime != nil {
+				res.ResultMeta.Time += *node.Result.CpuTime
+			}
 		}
 	}
 

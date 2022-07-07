@@ -1,6 +1,7 @@
 package test_test
 
 import (
+	"bytes"
 	"os"
 	"path"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 var probData *problem.ProbData
@@ -24,9 +26,8 @@ func MakeProbData(t *testing.T) {
 	}
 
 	script.Echo("1 2").WriteFile(path.Join(dir, "a.in"))
-	script.Echo("-1093908432").WriteFile(path.Join(dir, "a.ans"))
+	script.Echo("3").WriteFile(path.Join(dir, "a.ans"))
 	script.Echo("1000 1000 204857600 204857600 204857600 204857600 10").WriteFile(path.Join(dir, "cpl.txt"))
-	script.Echo("#!/bin/env bash\nclang++ $1 -o $2").WriteFile(path.Join(dir, "script.sh"))
 	script.Echo("# A + B Problem").WriteFile(path.Join(dir, "tmp.md"))
 
 	probData.Fullscore = 100
@@ -64,7 +65,6 @@ func MakeProbData(t *testing.T) {
 	r3["_score"] = "average"
 
 	probData.Static["limitation"] = "cpl.txt"
-	probData.Static["compilescript"] = "script.sh"
 
 	probData.SetStmt("zh", "tmp.md")
 
@@ -128,7 +128,6 @@ using namespace std;
 int main () { 
   int a, b; 
   cin >> a >> b;
-  for(int i = 0; i < 100000000; i++) a += b, b += a;
   cout << a + b << endl;
   return 0;
 }
@@ -157,5 +156,15 @@ int main () {
 		return
 	}
 	t.Log(res.Brief())
-	t.Log(pp.Sprint(res))
+	// t.Log(pp.Sprint(res))
+	subm2.SetSource(workflow.Gsubm, "source", "src.py", bytes.NewReader([]byte(`
+a, b = map(int, input().split())
+print(a + b)
+	`)))
+	res, err = run.RunProblem(theProb.Data(), t.TempDir(), subm2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(res.Brief())
 }

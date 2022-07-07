@@ -2,6 +2,7 @@ package processors
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"time"
 
@@ -52,6 +53,20 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 			"/dev/null", "/dev/null", output[1], "/usr/bin/g++", input[0], "-o", output[0],
 			"-O2", "-lm", "-DONLINE_JUDGE", verArg,
 		)
+	case ".py", ".python":
+		logger.Printf("detect python source")
+		err := compilePy(input[0], output[0], utils.SourceLang(sub_ext))
+		if err != nil {
+			logger.Printf("compile error: %s", err)
+			return &Result{
+				Code: processor.RuntimeError,
+				Msg:  err.Error(),
+			}
+		}
+		return &processor.Result{
+			Code: processor.Ok,
+			Msg:  "ok",
+		}
 	default:
 		return &Result{
 			Code: processor.SystemError,
@@ -74,6 +89,30 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 		}
 	}
 	return res.ProcResult()
+}
+
+func compilePy(src, dest string, lang utils.LangTag) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if lang == utils.Lpython2 {
+		file.WriteString("#!/bin/env python2\n\n")
+	} else {
+		file.WriteString("#!/bin/env python3\n\n")
+	}
+	file.Write(data)
+	if err := file.Chmod(0744); err != nil {
+		return err
+	}
+	return nil
 }
 
 var _ Processor = CompilerAuto{}

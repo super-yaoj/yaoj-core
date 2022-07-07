@@ -101,6 +101,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 
 	// parse sample
 	if conf["n_sample_tests"] != "" {
+		prob.Pretest.CalcMethod = problem.Msum
 		prob.Pretest.Tests.Fields().Add("input")
 		prob.Pretest.Tests.Fields().Add("output")
 		prob.Pretest.Tests.Fields().Add("_score")
@@ -122,6 +123,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	}
 	// parse extra tests
 	if conf["n_ex_tests"] != "" {
+		prob.Extra.CalcMethod = problem.Msum
 		prob.Extra.Tests.Fields().Add("input")
 		prob.Extra.Tests.Fields().Add("output")
 		prob.Extra.Tests.Fields().Add("_score")

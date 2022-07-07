@@ -21,6 +21,8 @@ func (r Inputmaker) Label() (inputlabel []string, outputlabel []string) {
 }
 
 func (r Inputmaker) Run(input []string, output []string) *Result {
+	os.Chmod(input[2], 0744)
+
 	option, err := os.ReadFile(input[1])
 	if err != nil {
 		return &Result{

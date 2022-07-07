@@ -20,6 +20,8 @@ func (r GeneratorTestlib) Label() (inputlabel []string, outputlabel []string) {
 	return []string{"generator", "arguments"}, []string{"output", "stderr", "judgerlog"}
 }
 func (r GeneratorTestlib) Run(input []string, output []string) *Result {
+	os.Chmod(input[0], 0744)
+
 	args, err := os.ReadFile(input[1])
 	if err != nil {
 		return &Result{

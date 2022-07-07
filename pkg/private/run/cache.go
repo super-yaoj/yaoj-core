@@ -3,6 +3,7 @@ package run
 import (
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
@@ -90,11 +91,15 @@ var gcache *fsCache
 
 // make sure init cache before problem judging!
 func CacheInit(dir string) error {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
 	logger.Printf("cache data in %q", dir)
 	if gcache != nil {
 		gcache.Reset()
 	}
-	err := os.MkdirAll(dir, os.ModePerm)
+	err = os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		return err
 	}

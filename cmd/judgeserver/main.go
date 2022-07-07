@@ -43,15 +43,19 @@ func main() {
 
 	var cachedir = path.Join(os.TempDir(), "yaoj-judger-server-cache")
 	os.RemoveAll(cachedir)
+
 	if err := os.MkdirAll(cachedir, os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}
 
-	run.CacheInit(cachedir)
+	if err := run.CacheInit(cachedir); err != nil {
+		logger.Fatal(err)
+	}
 
 	// handle signal
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		sig := <-sigs
 		fmt.Printf("\nhandle signal %q\n", sig)

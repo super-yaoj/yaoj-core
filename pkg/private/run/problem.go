@@ -114,7 +114,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			deps := strings.Split(records[i]["_depend"], ",")
 			for _, sid := range deps {
 				if records[j]["_subtaskid"] == sid {
-					logger.Printf("%s need %s", records[i]["_subtaskid"], records[j]["_subtaskid"])
+					// logger.Printf("%s need %s", records[i]["_subtaskid"], records[j]["_subtaskid"])
 					return true
 				}
 			}

@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"os"
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
@@ -18,6 +19,8 @@ func (r CheckerTestlib) Label() (inputlabel []string, outputlabel []string) {
 		[]string{"xmlreport", "stderr", "judgerlog"}
 }
 func (r CheckerTestlib) Run(input []string, output []string) *Result {
+	os.Chmod(input[0], 0744)
+
 	res, err := judger.Judge(
 		judger.WithArgument("/dev/null", "/dev/null", output[1], input[0],
 			input[1], input[2], input[3], output[0], "-appes"),

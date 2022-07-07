@@ -49,6 +49,6 @@ func (r *bufLogger) Fatal(v ...any) {
 func New(prefix string) *bufLogger {
 	logger := &bufLogger{}
 	logger.buf = &bytes.Buffer{}
-	logger.logger = log.New(logger.buf, prefix, log.LstdFlags|log.Lshortfile|log.Lmsgprefix)
+	logger.logger = log.New(logger.buf, prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Lmsgprefix)
 	return logger
 }

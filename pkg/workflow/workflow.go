@@ -120,6 +120,7 @@ type Result struct {
 	File []ResultFileDisplay
 }
 
+// json content
 func (r Result) Byte() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {

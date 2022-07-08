@@ -165,7 +165,8 @@ type ProbData struct {
 	// real memory limit (MB) and output limit (MB) respectively.
 	// Others are just filename.
 	Statement record
-	dir       string
+	// absolute dir
+	dir string
 }
 
 // Add file to r.dir/patch and return relative path
@@ -355,6 +356,10 @@ func LoadProbData(dir string) (*ProbData, error) {
 
 // create a new problem in an empty dir
 func NewProbData(dir string) (*ProbData, error) {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, err
+	}
 	graph := workflow.NewGraph()
 	var prob = ProbData{
 		dir: dir,

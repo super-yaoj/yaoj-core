@@ -229,14 +229,22 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 			record := prob.Subtasks.Records().New()
 			record["_subtaskid"] = fmt.Sprint("subtask_", i)
 			record["_score"] = fmt.Sprint(score)
+
 			if depstr, ok := conf[fmt.Sprint("subtask_dependence_", i)]; ok {
 				prob.Subtasks.Fields().Add("_depend")
 
-				deps := strings.Split(depstr, " ")
-				deps = utils.Map(deps, func(token string) string {
-					return "subtask_" + token
-				})
-				record["_depend"] = strings.Join(deps, ",")
+				if depstr == "many" {
+					var deps = []string{}
+					for j := 1; conf[fmt.Sprint("subtask_dependence_", i, "_", j)] != ""; j++ {
+						deps = append(deps, conf[fmt.Sprint("subtask_dependence_", i, "_", j)])
+					}
+					deps = utils.Map(deps, func(token string) string {
+						return "subtask_" + token
+					})
+					record["_depend"] = strings.Join(deps, ",")
+				} else {
+					record["_depend"] = "subtask_" + depstr
+				}
 			}
 
 			for j := las; j < int(endid); j++ {

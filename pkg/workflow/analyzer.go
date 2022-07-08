@@ -119,13 +119,21 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 		}
 	}
 
+	// common files
+	for _, node := range nodes {
+		if node.Result == nil {
+			continue
+		}
+		if node.Attr["dependon"] == "user" {
+			res.File = append(res.File, autoFileDisplay(node)...)
+		}
+	}
 	// common error
 	for _, node := range nodes {
 		if node.Result == nil {
 			continue
 		}
 		if node.Result.Code != processor.Ok {
-			res.File = append(res.File, autoFileDisplay(node)...)
 			if node.ProcName == "checker:testlib" {
 				type Result struct {
 					XMLName xml.Name `xml:"result"`
@@ -174,15 +182,6 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 				return res
 			}
 			panic("system error")
-		}
-	}
-	// accepted
-	for _, node := range nodes {
-		if node.Result == nil {
-			continue
-		}
-		if node.Attr["dependon"] == "user" {
-			res.File = append(res.File, autoFileDisplay(node)...)
 		}
 	}
 	return res

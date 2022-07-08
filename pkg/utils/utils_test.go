@@ -15,6 +15,7 @@ func TestChecksum(t *testing.T) {
 
 type ratingRator struct {
 	rating int
+	count  int
 }
 
 func (r *ratingRator) Rating() int {
@@ -23,9 +24,12 @@ func (r *ratingRator) Rating() int {
 func (r *ratingRator) Rate(rating int) {
 	r.rating = rating
 }
+func (r *ratingRator) Count() int {
+	return r.count
+}
 
 func TestCalcRating(t *testing.T) {
-	var a []utils.RatingRater
+	var a []*ratingRator
 	a = append(a,
 		&ratingRator{rating: 0},
 		&ratingRator{rating: 100},
@@ -40,8 +44,9 @@ func TestCalcRating(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	utils.CalcRating(a)
-	utils.CalcRating(a)
+	for i := range a {
+		a[i].count++
+	}
 	err = utils.CalcRating(a)
 	if err != nil {
 		t.Error(err)

@@ -228,11 +228,16 @@ func TopoSort(size int, dependon func(i, j int) bool) (res []int, err error) {
 type RatingRater interface {
 	Rate(rating int)
 	Rating() int
+	// 此前参加了多少场比赛（不算当前这场）
+	Count() int
 }
 
 // 注意 list 应按照比赛成绩从高到底排序
 // implementing https://codeforces.com/blog/entry/20762
-func CalcRating(list []RatingRater) error {
+// https://codeforces.com/blog/entry/77890
+func CalcRating[T RatingRater](list []T) error {
+	var beginnerStage = []int{500, 350, 250, 150, 100, 50}
+
 	// probability of A winning B
 	Pwin := func(ratingA int, ratingB int) float64 {
 		return 1 / float64(1+math.Pow(10, float64(ratingB-ratingA)/400))
@@ -308,7 +313,11 @@ func CalcRating(list []RatingRater) error {
 	}
 
 	for i := range list {
-		list[i].Rate(list[i].Rating() + deltas[i])
+		if cnt := list[i].Count(); cnt < len(beginnerStage) {
+			list[i].Rate(list[i].Rating() + deltas[i] + beginnerStage[cnt])
+		} else {
+			list[i].Rate(list[i].Rating() + deltas[i])
+		}
 	}
 
 	return nil

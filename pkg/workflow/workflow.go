@@ -141,7 +141,7 @@ func isExecAny(mode os.FileMode) bool {
 func fetchFileContent(path string, len int) []byte {
 	file, err := os.Open(path)
 	if err != nil {
-		return []byte("[error] " + err.Error())
+		return []byte("")
 	}
 	defer file.Close()
 

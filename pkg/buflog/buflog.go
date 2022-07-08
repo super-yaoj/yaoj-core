@@ -1,9 +1,10 @@
 package buflog
 
 import (
-	"bytes"
+	"fmt"
 	"log"
 	"os"
+	"sync"
 )
 
 var Writer = os.Stderr
@@ -15,31 +16,29 @@ func Tail() []string {
 
 var TailThreshold = 300
 var tails []string
+var tailmu sync.Mutex
 
 type bufLogger struct {
-	buf    *bytes.Buffer
 	logger *log.Logger
 }
 
-func (r *bufLogger) Printf(fmt string, v ...any) {
-	r.logger.Printf(fmt, v...)
+func (r *bufLogger) appendTail(s string) {
+	tailmu.Lock()
+	defer tailmu.Unlock()
 
-	tails = append(tails, r.buf.String())
+	tails = append(tails, s)
 	if len(tails) > TailThreshold {
 		tails = tails[1:]
 	}
+}
 
-	r.buf.WriteTo(Writer)
+func (r *bufLogger) Printf(format string, v ...any) {
+	r.logger.Printf(format, v...)
+	r.appendTail(fmt.Sprintf(format, v...))
 }
 func (r *bufLogger) Print(v ...any) {
 	r.logger.Print(v...)
-
-	tails = append(tails, r.buf.String())
-	if len(tails) > TailThreshold {
-		tails = tails[1:]
-	}
-
-	r.buf.WriteTo(Writer)
+	r.appendTail(fmt.Sprint(v...))
 }
 func (r *bufLogger) Fatal(v ...any) {
 	r.Print(v...)
@@ -48,7 +47,6 @@ func (r *bufLogger) Fatal(v ...any) {
 
 func New(prefix string) *bufLogger {
 	logger := &bufLogger{}
-	logger.buf = &bytes.Buffer{}
-	logger.logger = log.New(logger.buf, prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Lmsgprefix)
+	logger.logger = log.New(Writer, prefix, log.Ldate|log.Ltime|log.Lmicroseconds|log.Lmsgprefix)
 	return logger
 }

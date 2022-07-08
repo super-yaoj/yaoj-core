@@ -27,14 +27,16 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 		}
 		data := inboundPath[i]
 		if data == nil {
-			return nil, fmt.Errorf("inboundPath[%s] == nil", i)
-		}
-		for j, bounds := range *group {
-			if _, ok := (*data)[j]; !ok {
-				return nil, fmt.Errorf("invalid inboundPath: missing field %s %s", i, j)
-			}
-			for _, bound := range bounds {
-				nodes[bound.Name].Input[bound.LabelIndex] = (*inboundPath[i])[j]
+			logger.Printf("warning: inboundPath[%s] == nil", i)
+		} else {
+			for j, bounds := range *group {
+				if name, ok := (*data)[j]; !ok {
+					logger.Printf("warning: inboundPath: missing field %s %s", i, j)
+				} else {
+					for _, bound := range bounds {
+						nodes[bound.Name].Input[bound.LabelIndex] = name
+					}
+				}
 			}
 		}
 	}
@@ -57,7 +59,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 	err = topologicalEnum(w, func(id string) error {
 		node := nodes[id]
 		if !node.inputFullfilled() {
-			return fmt.Errorf("input not fullfilled")
+			logger.Printf("warning: input not fullfilled")
 		}
 		node.calcHash()
 		if pOutputCache.Has(node.hash) { // cache level 1

@@ -20,7 +20,8 @@ func Judge(ctx *gin.Context) {
 	type Judge struct {
 		Callback string `form:"cb" binding:"required"`
 		Checksum string `form:"sum" binding:"required"`
-		// default: options: "pretest" "extra"
+		// default: options: "pretest" "extra" "hack"
+		// "hack": 返回 workflow.Result
 		Mode string `form:"mode"`
 	}
 	var qry Judge
@@ -45,6 +46,24 @@ func Judge(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	var std, hackee problem.Submission
+	if qry.Mode == "hack" {
+		if submission[workflow.Gsubm] == nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "invalid submission"})
+			return
+		}
+		// 外层的submission就 workflow.Gsubm 里 "std" "hackee" 两个字段
+		std, err = problem.LoadSubmData((*submission[workflow.Gsubm])["std"].Ctnt)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		hackee, err = problem.LoadSubmData((*submission[workflow.Gsubm])["hackee"].Ctnt)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
 
 	// load problem
 	prob := storage.Get(qry.Checksum)
@@ -62,16 +81,30 @@ func Judge(ctx *gin.Context) {
 		tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
 		defer os.RemoveAll(tmpdir)
 
-		result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
-		if err != nil {
-			logger.Printf("run problem: %v", err)
-			return
-		}
-		logger.Print(result.Brief())
+		if qry.Mode == "hack" {
+			result, err := run.RunHack(prob.Data(), tmpdir, hackee, std)
+			if err != nil {
+				logger.Printf("run hack error: %v", err)
+				return
+			}
+			logger.Printf("%+v", result)
 
-		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
-		if err != nil {
-			logger.Printf("callback request error: %v", err)
+			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+			if err != nil {
+				logger.Printf("callback request error: %v", err)
+			}
+		} else {
+			result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
+			if err != nil {
+				logger.Printf("run problem error: %v", err)
+				return
+			}
+			logger.Print(result.Brief())
+
+			_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+			if err != nil {
+				logger.Printf("callback request error: %v", err)
+			}
 		}
 
 		logger.Printf("Total judging time: %v", time.Since(start_time))

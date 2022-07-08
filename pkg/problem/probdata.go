@@ -165,6 +165,12 @@ type ProbData struct {
 	// real memory limit (MB) and output limit (MB) respectively.
 	// Others are just filename.
 	Statement record
+	// hack 时 tests 里需要提交的字段，以及其对应的限制
+	// 为 nil 表示不支持 hack
+	HackFields map[string]SubmLimit
+	// 由 tests 的字段映射到 workflow 的中间输出文件
+	// 为 nil 表示不支持 hack
+	HackIOMap map[string]workflow.Outbound
 	// absolute dir
 	dir string
 }
@@ -408,6 +414,10 @@ func (r *ProbData) SetValFile(rcd record, field string, filename string) error {
 func (r *ProbData) Finalize() error {
 	logger.Printf("finalize %q", r.dir)
 	return os.RemoveAll(r.dir)
+}
+
+func (r *ProbData) Hackable() bool {
+	return r.HackFields != nil && r.HackIOMap != nil
 }
 
 func newTestdata() ProbTestdata {

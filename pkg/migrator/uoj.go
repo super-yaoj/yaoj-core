@@ -148,10 +148,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	if _, ok := conf["use_builtin_checker"]; ok {
 		logger.Printf("use builtin checker: %q", conf["use_builtin_checker"])
 		// copy checker
-		file, err := asserts.Open(path.Join("asserts", "checker", conf["use_builtin_checker"]+".cpp"))
-		if err != nil {
-			return nil, err
-		}
+		file, _ := asserts.Open(path.Join("asserts", "checker", conf["use_builtin_checker"]+".cpp"))
 		pchk, err := prob.AddFileReader("checker_uoj.cpp", file)
 		if err != nil {
 			return nil, err
@@ -165,6 +162,22 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 		}
 		prob.Static["checker"] = pchk
 	}
+
+	/*
+		// enable hack (traditional)
+		prob.HackFields = map[string]problem.SubmLimit{
+			"input": {
+				Accepted: utils.Cplain,
+				Length:   20 * 1024 * 1024,
+			},
+		}
+		prob.HackIOMap = map[string]workflow.Outbound{
+			"output": {
+				Name:       "run",
+				LabelIndex: 0, // "stdout"
+			},
+		}
+	*/
 
 	// parse limitation
 	tl := parseInt(conf["time_limit"])

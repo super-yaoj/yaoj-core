@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -40,13 +41,13 @@ var pResultCache = inMemoryCache[processor.Result]{
 
 var CacheSize = 1000
 
-var runProbLock sync.Mutex
+var runMutex sync.Mutex
 
 // Run all testcase in the dir. User option mode to choose from original tests,
 // pretests and extra tests.
 func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode ...string) (*problem.Result, error) {
-	runProbLock.Lock()
-	defer runProbLock.Unlock()
+	runMutex.Lock()
+	defer runMutex.Unlock()
 
 	logger.Printf("run dir=%s", dir)
 
@@ -234,8 +235,8 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 // mutex
 func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Groupname]*map[string]string,
 	fullscore float64) (*workflow.Result, error) {
-	runProbLock.Lock()
-	defer runProbLock.Unlock()
+	runMutex.Lock()
+	defer runMutex.Unlock()
 
 	logger.Printf("run workflow directly dir=%s", dir)
 
@@ -250,4 +251,74 @@ func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Group
 	pResultCache.Reset()
 
 	return runWorkflow(w, dir, inboundPath, fullscore)
+}
+
+type hackAnalyzer struct {
+	capture map[string]workflow.Outbound
+	data    map[string][]byte
+}
+
+func (r *hackAnalyzer) Analyze(w workflow.Workflow, nodes map[string]workflow.RuntimeNode,
+	fullscore float64) workflow.Result {
+
+	r.data = map[string][]byte{}
+	for field, bound := range r.capture {
+		data, _ := os.ReadFile(nodes[bound.Name].Output[bound.LabelIndex])
+		r.data[field] = data
+	}
+
+	return workflow.Result{}
+}
+
+// hackSubm 包含被 hack 的提交以及 hackinput
+func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) (*workflow.Result, error) {
+	runMutex.Lock()
+	defer runMutex.Unlock()
+
+	logger.Printf("run hack dir=%s", dir)
+
+	if gcache == nil {
+		return nil, fmt.Errorf("global cache not initialized")
+	}
+
+	gcache.Resize(CacheSize)
+
+	// clear cache
+	pOutputCache.Reset()
+	pResultCache.Reset()
+
+	hackin := hackSubm.Download(dir)
+	stdin := std.Download(dir)
+	stdin[workflow.Gtests] = hackin[workflow.Gtests]
+	stdin[workflow.Gstatic] = toPathMap(r, r.Static)
+
+	halyz := hackAnalyzer{capture: r.HackIOMap}
+	wk := workflow.Workflow{
+		WorkflowGraph: r.Workflow().WorkflowGraph,
+		Analyzer:      &halyz,
+	}
+
+	_, err := runWorkflow(wk, dir, stdin, r.Fullscore)
+	if err != nil {
+		return nil, err
+	}
+
+	for field, data := range halyz.data {
+		file, err := os.CreateTemp(dir, "hackinput-*")
+		if err != nil {
+			return nil, err
+		}
+		file.Write(data)
+		file.Close()
+
+		if hackin[workflow.Gtests] == nil {
+			hackin[workflow.Gtests] = &map[string]string{}
+		}
+		(*hackin[workflow.Gtests])[field] = file.Name()
+		hackin[workflow.Gstatic] = toPathMap(r, r.Static)
+
+		logger.Printf("tests add %q: %q", field, (*hackin[workflow.Gtests])[field])
+	}
+
+	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore)
 }

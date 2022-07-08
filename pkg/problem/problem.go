@@ -23,6 +23,8 @@ type Problem interface {
 	Data() *ProbData
 	// 展示数据
 	DataInfo() DataInfo
+	// 是否支持 hack
+	Hackable() bool
 }
 
 type TestdataInfo struct {
@@ -36,7 +38,9 @@ type DataInfo struct {
 	Pretest TestdataInfo
 	Extra   TestdataInfo
 	// 静态文件
-	Static map[string]string //other properties of data
+	Static     map[string]string //other properties of data
+	Hackable   bool
+	HackFields map[string]SubmLimit
 }
 
 type SubtaskInfo struct {
@@ -96,8 +100,14 @@ func (r *prob) DataInfo() DataInfo {
 		Extra:        r.data.Extra.Info(),
 		Fullscore:    r.data.Fullscore,
 		Static:       r.data.Static,
+		Hackable:     r.Hackable(),
+		HackFields:   r.data.HackFields,
 	}
 	return res
+}
+
+func (r *prob) Hackable() bool {
+	return r.data.Hackable()
 }
 
 var _ Problem = (*prob)(nil)

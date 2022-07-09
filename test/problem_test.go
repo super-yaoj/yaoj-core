@@ -176,4 +176,11 @@ print(a + b)
 		return
 	}
 	t.Log(res.Brief())
+	// test nocache
+	res, err = run.RunProblem(theProb.Data(), t.TempDir(), subm2, "nocache")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(res.Brief())
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,8 @@ func Judge(ctx *gin.Context) {
 		Checksum string `form:"sum" binding:"required"`
 		// default: options: "pretest" "extra" "hack"
 		// "hack": 返回 workflow.Result
-		Mode string `form:"mode"`
+		// 多个 mode 用 "," 隔开
+		Modes string `form:"mode"`
 	}
 	var qry Judge
 	err := ctx.BindQuery(&qry)
@@ -30,6 +32,7 @@ func Judge(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	modes := strings.Split(qry.Modes, ",")
 
 	if !storage.Has(qry.Checksum) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -47,7 +50,7 @@ func Judge(ctx *gin.Context) {
 		return
 	}
 	var std, hackee problem.Submission
-	if qry.Mode == "hack" {
+	if utils.FindIndex(modes, "hack") != -1 {
 		if submission[workflow.Gsubm] == nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "invalid submission"})
 			return
@@ -81,7 +84,7 @@ func Judge(ctx *gin.Context) {
 		tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
 		defer os.RemoveAll(tmpdir)
 
-		if qry.Mode == "hack" {
+		if utils.FindIndex(modes, "hack") != -1 {
 			result, err := run.RunHack(prob.Data(), tmpdir, hackee, std)
 			if err != nil {
 				logger.Printf("run hack error: %v", err)
@@ -94,7 +97,7 @@ func Judge(ctx *gin.Context) {
 				logger.Printf("callback request error: %v", err)
 			}
 		} else {
-			result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Mode)
+			result, err := run.RunProblem(prob.Data(), tmpdir, submission, modes...)
 			if err != nil {
 				logger.Printf("run problem error: %v", err)
 				return

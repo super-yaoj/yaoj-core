@@ -17,8 +17,13 @@ import (
 // perform a workflow in a directory.
 // inboundPath: map[datagroup_name]*map[field]filename
 // do not remove cache when running workflow!
+// usecache: 是否使用 cache
 func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[string]string,
-	fullscore float64) (*wk.Result, error) {
+	fullscore float64, usecache bool) (*wk.Result, error) {
+	// 在评测完一整个 workflow 前都不能 resize
+	resizeMutex.Lock()
+	defer resizeMutex.Unlock()
+
 	nodes := runtimeNodes(w.Node)
 
 	for i, group := range w.Inbound {
@@ -62,13 +67,13 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 			logger.Printf("warning: input not fullfilled")
 		}
 		node.calcHash()
-		if pOutputCache.Has(node.hash) { // cache level 1
+		if usecache && pOutputCache.Has(node.hash) { // cache level 1
 			logger.Printf("Run node[%s] (cached lv 1)", id)
 			cache_outputs := pOutputCache.Get(node.hash)[:]
 			result := pResultCache.Get(node.hash)
 			node.Output = cache_outputs
 			node.Result = &result
-		} else if gcache.Has(node.hash, "@result") { // cache level 2
+		} else if usecache && gcache.Has(node.hash, "@result") { // cache level 2
 			logger.Printf("Run node[%s] (cached lv 2)", id)
 			result := processor.Result{}
 			err := result.Unserialize(gcache.Get(node.hash, "@result"))

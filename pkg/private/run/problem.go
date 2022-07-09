@@ -38,17 +38,16 @@ var pResultCache = inMemoryCache[processor.Result]{
 	data: map[sha]processor.Result{},
 }
 
-var CacheSize = 1000
-
 var runMutex sync.Mutex
 
 // Run all testcase in the dir. User option mode to choose from original tests,
-// pretests and extra tests.
+// pretests and extra tests, and control cache using.
+// available modes: "pretest" "extra" "nocache"
 func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode ...string) (*problem.Result, error) {
 	runMutex.Lock()
 	defer runMutex.Unlock()
 
-	logger.Printf("run dir=%s", dir)
+	logger.Printf("run prob in dir=%q with modes: %s", dir, strings.Join(mode, ","))
 
 	if gcache == nil {
 		return nil, logger.Errorf("global cache not initialized")
@@ -71,14 +70,17 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	inboundPath := subm.Download(dir)
 	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
 
+	// parse mode
 	testdata := r.ProbTestdata
-	if len(mode) > 0 {
-		switch mode[0] {
-		case "pretest":
-			testdata = r.Pretest
-		case "extra":
-			testdata = r.Extra
-		}
+	usecache := true
+	if utils.FindIndex(mode, "pretest") != -1 {
+		testdata = r.Pretest
+	}
+	if utils.FindIndex(mode, "extra") != -1 {
+		testdata = r.Extra
+	}
+	if utils.FindIndex(mode, "nocache") != -1 {
+		usecache = false
 	}
 
 	var result = problem.Result{
@@ -172,7 +174,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 					data.Fullscore = test_score
 					data.Score = 0
 				} else {
-					res, err := runWorkflow(r.Workflow(), dir, inboundPath, test_score)
+					res, err := runWorkflow(r.Workflow(), dir, inboundPath, test_score, usecache)
 					if err != nil {
 						return nil, err
 					}
@@ -213,7 +215,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 				data.Fullscore = score
 				data.Score = 0
 			} else {
-				res, err := runWorkflow(r.Workflow(), dir, inboundPath, score)
+				res, err := runWorkflow(r.Workflow(), dir, inboundPath, score, usecache)
 				if err != nil {
 					return nil, err
 				}
@@ -249,7 +251,7 @@ func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Group
 	pOutputCache.Reset()
 	pResultCache.Reset()
 
-	return runWorkflow(w, dir, inboundPath, fullscore)
+	return runWorkflow(w, dir, inboundPath, fullscore, true)
 }
 
 type hackAnalyzer struct {
@@ -290,6 +292,10 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 	stdin := std.Download(dir)
 	stdin[workflow.Gtests] = hackin[workflow.Gtests]
 	stdin[workflow.Gstatic] = toPathMap(r, r.Static)
+	// 默认取第一个 subtask 的数据
+	if r.IsSubtask() {
+		stdin[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
+	}
 
 	halyz := hackAnalyzer{capture: r.HackIOMap}
 	wk := workflow.Workflow{
@@ -297,7 +303,7 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 		Analyzer:      &halyz,
 	}
 
-	_, err := runWorkflow(wk, dir, stdin, r.Fullscore)
+	_, err := runWorkflow(wk, dir, stdin, r.Fullscore, true)
 	if err != nil {
 		return nil, err
 	}
@@ -315,9 +321,13 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 		}
 		(*hackin[workflow.Gtests])[field] = file.Name()
 		hackin[workflow.Gstatic] = toPathMap(r, r.Static)
+		// 默认取第一个 subtask 的数据
+		if r.IsSubtask() {
+			hackin[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
+		}
 
 		logger.Printf("tests add %q: %q", field, (*hackin[workflow.Gtests])[field])
 	}
 
-	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore)
+	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore, true)
 }

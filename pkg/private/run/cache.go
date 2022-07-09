@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
@@ -34,25 +35,31 @@ type fsCache struct {
 	list      []string
 }
 
+func (r *fsCache) assign(key string) {
+	if r.existence[key] { // remove it
+		logger.Printf("warning: %q already cached", key)
+		id := utils.FindIndex(r.list, key)
+		if id == -1 {
+			panic("key exist but not found in list")
+		}
+		r.list = append(r.list[:id], r.list[id+1:]...)
+	}
+	r.existence[key] = true
+	r.list = append(r.list, key)
+}
 func (r *fsCache) Set(hash sha, decorator string, data []byte) {
 	key := hash.String() + decorator
 	file, _ := os.Create(path.Join(r.dir, key))
 	file.Write(data)
 	file.Close()
-	if r.existence[key] {
-		panic("multi set cache")
-	}
-	r.existence[key] = true
-	r.list = append(r.list, key)
+
+	r.assign(key)
 }
 func (r *fsCache) SetSource(hash sha, decorator string, name string) {
 	key := hash.String() + decorator
 	utils.CopyFile(name, path.Join(r.dir, key))
-	if r.existence[key] {
-		panic("multi set cache")
-	}
-	r.existence[key] = true
-	r.list = append(r.list, key)
+
+	r.assign(key)
 }
 func (r *fsCache) Get(hash sha, decorator string) []byte {
 	key := hash.String() + decorator
@@ -75,6 +82,10 @@ func (r *fsCache) Reset() {
 	r.list = make([]string, 0)
 }
 func (r *fsCache) Resize(size int) {
+	logger.Printf("global cache trying to resize")
+	resizeMutex.Lock()
+	defer resizeMutex.Unlock()
+
 	if len(r.list) > size {
 		remlist := r.list[:len(r.list)-size]
 
@@ -103,6 +114,14 @@ func CacheInit(dir string) error {
 	if err != nil {
 		return err
 	}
-	gcache = &fsCache{dir: dir, existence: map[string]bool{}, list: make([]string, 0)}
+	gcache = &fsCache{
+		dir:       dir,
+		existence: map[string]bool{},
+		list:      make([]string, 0),
+	}
 	return nil
 }
+
+// 防止在评测题目的时候 resize
+var resizeMutex sync.Mutex
+var CacheSize = 1000

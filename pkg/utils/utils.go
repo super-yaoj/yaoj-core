@@ -322,3 +322,13 @@ func CalcRating[T RatingRater](list []T) error {
 
 	return nil
 }
+
+// index of the first element equaling to v, otherwise return -1
+func FindIndex[T comparable](array []T, v T) int {
+	for i, item := range array {
+		if item == v {
+			return i
+		}
+	}
+	return -1
+}

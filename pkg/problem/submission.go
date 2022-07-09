@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -125,10 +126,10 @@ func (r Submission) Download(dir string) (res map[workflow.Groupname]*map[string
 	return res
 }
 
-// 提交文件配置
+// 针对某个域的提交文件配置
 type SubmConf map[string]SubmLimit
 
-// limitation for any file submitted
+// Limitation for submitted files
 type SubmLimit struct {
 	// 接受的语言，nil 表示所有语言
 	Langs []utils.LangTag
@@ -136,6 +137,14 @@ type SubmLimit struct {
 	Accepted utils.CtntType
 	// 文件大小，单位 byte
 	Length uint32
+}
+
+// 事实上只检查长度
+func (r SubmLimit) Validate(data []byte) error {
+	if len(data) > int(r.Length) {
+		return fmt.Errorf("file size limit exceed")
+	}
+	return nil
 }
 
 // 解压

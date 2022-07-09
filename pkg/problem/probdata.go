@@ -156,7 +156,7 @@ type ProbData struct {
 	// 题目本身数据
 	ProbTestdata
 	// "submission" configuration
-	Submission map[string]SubmLimit
+	Submission SubmConf
 	// "static"
 	Static record
 	// "statement"
@@ -167,7 +167,7 @@ type ProbData struct {
 	Statement record
 	// hack 时 tests 里需要提交的字段，以及其对应的限制
 	// 为 nil 表示不支持 hack
-	HackFields map[string]SubmLimit
+	HackFields SubmConf
 	// 由 tests 的字段映射到 workflow 的中间输出文件
 	// 为 nil 表示不支持 hack
 	HackIOMap map[string]workflow.Outbound

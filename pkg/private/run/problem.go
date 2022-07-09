@@ -1,7 +1,6 @@
 package run
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strconv"
@@ -52,7 +51,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	logger.Printf("run dir=%s", dir)
 
 	if gcache == nil {
-		return nil, fmt.Errorf("global cache not initialized")
+		return nil, logger.Errorf("global cache not initialized")
 	}
 
 	gcache.Resize(CacheSize)
@@ -60,7 +59,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 	// check submission
 	for k := range r.Submission {
 		if _, ok := (*subm[workflow.Gsubm])[k]; !ok {
-			return nil, fmt.Errorf("submission missing field %s", k)
+			return nil, logger.Errorf("submission missing field %s", k)
 		}
 	}
 
@@ -241,7 +240,7 @@ func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Group
 	logger.Printf("run workflow directly dir=%s", dir)
 
 	if gcache == nil {
-		return nil, fmt.Errorf("global cache not initialized")
+		return nil, logger.Errorf("global cache not initialized")
 	}
 
 	gcache.Resize(CacheSize)
@@ -278,7 +277,7 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 	logger.Printf("run hack dir=%s", dir)
 
 	if gcache == nil {
-		return nil, fmt.Errorf("global cache not initialized")
+		return nil, logger.Errorf("global cache not initialized")
 	}
 
 	gcache.Resize(CacheSize)

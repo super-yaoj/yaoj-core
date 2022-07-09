@@ -1,6 +1,7 @@
 package buflog
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -30,6 +31,13 @@ func (r *bufLogger) appendTail(s string) {
 	if len(tails) > TailThreshold {
 		tails = tails[1:]
 	}
+}
+
+func (r *bufLogger) Errorf(format string, v ...any) error {
+	r.logger.Printf("ERROR: "+format, v...)
+	errstr := fmt.Sprintf(format, v...)
+	r.appendTail("ERROR: " + errstr)
+	return errors.New(errstr)
 }
 
 func (r *bufLogger) Printf(format string, v ...any) {

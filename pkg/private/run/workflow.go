@@ -23,7 +23,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 
 	for i, group := range w.Inbound {
 		if group == nil {
-			return nil, fmt.Errorf("w.Inbound[%s] == nil", i)
+			return nil, logger.Errorf("w.Inbound[%s] == nil", i)
 		}
 		data := inboundPath[i]
 		if data == nil {
@@ -229,7 +229,7 @@ func topologicalEnum(w wk.Workflow, handler func(id string) error) error {
 	}
 	for id := range w.Node {
 		if indegree[id] != -1 {
-			return fmt.Errorf("invalid DAG! id=%s", id)
+			return logger.Errorf("invalid DAG! id=%s", id)
 		}
 	}
 	return nil

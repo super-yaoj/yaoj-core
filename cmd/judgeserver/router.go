@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,18 +20,17 @@ func Judge(ctx *gin.Context) {
 	type Judge struct {
 		Callback string `form:"cb" binding:"required"`
 		Checksum string `form:"sum" binding:"required"`
-		// default: options: "pretest" "extra" "hack"
+		// options: "pretest" "extra" "hack" （这三个互斥）
+		// options: "nocache"
 		// "hack": 返回 workflow.Result
-		// 多个 mode 用 "," 隔开
-		Modes string `form:"mode"`
+		// 多个 mode 可重复指定: &mode=hack&mode=nocache
+		Modes []string `form:"mode"`
 	}
 	var qry Judge
-	err := ctx.BindQuery(&qry)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.BindQuery(&qry); err != nil {
+		logger.Printf("bind query error: %s", err.Error())
 		return
 	}
-	modes := strings.Split(qry.Modes, ",")
 
 	if !storage.Has(qry.Checksum) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -50,7 +48,7 @@ func Judge(ctx *gin.Context) {
 		return
 	}
 	var std, hackee problem.Submission
-	if utils.FindIndex(modes, "hack") != -1 {
+	if utils.FindIndex(qry.Modes, "hack") != -1 {
 		if submission[workflow.Gsubm] == nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "invalid submission"})
 			return
@@ -84,8 +82,9 @@ func Judge(ctx *gin.Context) {
 		tmpdir, _ := os.MkdirTemp("", "yaoj-runtime-*")
 		defer os.RemoveAll(tmpdir)
 
-		if utils.FindIndex(modes, "hack") != -1 {
-			result, err := run.RunHack(prob.Data(), tmpdir, hackee, std)
+		if utils.FindIndex(qry.Modes, "hack") != -1 {
+			result, err := run.RunHack(prob.Data(), tmpdir, hackee, std,
+				utils.FindIndex(qry.Modes, "nocache") == -1)
 			if err != nil {
 				logger.Printf("run hack error: %v", err)
 				return
@@ -97,7 +96,7 @@ func Judge(ctx *gin.Context) {
 				logger.Printf("callback request error: %v", err)
 			}
 		} else {
-			result, err := run.RunProblem(prob.Data(), tmpdir, submission, modes...)
+			result, err := run.RunProblem(prob.Data(), tmpdir, submission, qry.Modes...)
 			if err != nil {
 				logger.Printf("run problem error: %v", err)
 				return
@@ -119,9 +118,7 @@ func CustomTest(ctx *gin.Context) {
 		Callback string `form:"cb" binding:"required"`
 	}
 	var qry CustomTest
-	err := ctx.BindQuery(&qry)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.BindQuery(&qry); err != nil {
 		return
 	}
 
@@ -167,9 +164,7 @@ func Sync(ctx *gin.Context) {
 		Checksum string `form:"sum" binding:"required"`
 	}
 	var qry Sync
-	err := ctx.BindQuery(&qry)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.BindQuery(&qry); err != nil {
 		return
 	}
 	// store problem

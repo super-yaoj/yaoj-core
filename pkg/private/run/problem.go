@@ -272,11 +272,11 @@ func (r *hackAnalyzer) Analyze(w workflow.Workflow, nodes map[string]workflow.Ru
 }
 
 // hackSubm 包含被 hack 的提交以及 hackinput
-func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) (*workflow.Result, error) {
+func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission, usecache bool) (*workflow.Result, error) {
 	runMutex.Lock()
 	defer runMutex.Unlock()
 
-	logger.Printf("run hack dir=%s", dir)
+	logger.Printf("run hack dir=%s usecache=%v", dir, usecache)
 
 	if gcache == nil {
 		return nil, logger.Errorf("global cache not initialized")
@@ -303,7 +303,7 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 		Analyzer:      &halyz,
 	}
 
-	_, err := runWorkflow(wk, dir, stdin, r.Fullscore, true)
+	_, err := runWorkflow(wk, dir, stdin, r.Fullscore, usecache)
 	if err != nil {
 		return nil, err
 	}
@@ -329,5 +329,5 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission) 
 		logger.Printf("tests add %q: %q", field, (*hackin[workflow.Gtests])[field])
 	}
 
-	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore, true)
+	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore, usecache)
 }

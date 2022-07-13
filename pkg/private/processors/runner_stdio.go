@@ -33,7 +33,7 @@ func (r RunnerStdio) Run(input []string, output []string) *Result {
 	options := []judger.OptionProvider{
 		judger.WithArgument(input[1], output[0], output[1], input[0]),
 		judger.WithJudger(judger.General),
-		judger.WithPolicy("builtin:free"),
+		judger.WithPolicy("builtin:_coverage_general_strict"),
 		judger.WithLog(output[2], 0, false),
 	}
 	more, err := parseJudgerLimit(string(lim))

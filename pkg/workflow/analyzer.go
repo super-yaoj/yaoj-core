@@ -128,6 +128,42 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 			res.File = append(res.File, autoFileDisplay(node)...)
 		}
 	}
+	nameOfCode := func(code processor.Code) string {
+		switch code {
+		case processor.Ok:
+			return "Accepted"
+		case processor.TimeExceed:
+			return "Time Limit Exceed"
+		case processor.RuntimeError:
+			return "Runtime Error"
+		case processor.DangerousSyscall:
+			return "Dangerous System Call"
+		case processor.ExitError:
+			return "Exit Code Error"
+		case processor.OutputExceed:
+			return "Output Limit Exceed"
+		case processor.MemoryExceed:
+			return "Memory Limit Exceed"
+		case processor.SystemError:
+			return "System Error"
+		}
+		return "Unknown Error"
+	}
+	// runner error
+	for _, node := range nodes {
+		if node.Result == nil {
+			continue
+		}
+		if node.Result.Code != processor.Ok {
+			if node.Attr["dependon"] == "user" &&
+				strings.Contains(node.ProcName, "runner") {
+
+				res.Title = nameOfCode(node.Result.Code)
+				res.Score = 0
+				return res
+			}
+		}
+	}
 	// common error
 	for _, node := range nodes {
 		if node.Result == nil {
@@ -161,23 +197,7 @@ func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fulls
 				return res
 			}
 			if node.Attr["dependon"] == "user" {
-				var title = "Unaccepted"
-				switch node.Result.Code {
-				case processor.TimeExceed:
-					title = "Time Limit Exceed"
-				case processor.RuntimeError:
-					title = "Runtime Error"
-				case processor.DangerousSyscall:
-					title = "Dangerous System Call"
-				case processor.ExitError:
-					title = "Exit Code Error"
-				case processor.OutputExceed:
-					title = "Output Limit Exceed"
-				case processor.MemoryExceed:
-					title = "Memory Limit Exceed"
-				}
-
-				res.Title = title
+				res.Title = nameOfCode(node.Result.Code)
 				res.Score = 0
 				return res
 			}

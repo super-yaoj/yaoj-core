@@ -182,6 +182,7 @@ func Sync(ctx *gin.Context) {
 
 	chk := utils.FileChecksum(file.Name()).String()
 	if qry.Checksum != chk {
+		logger.Printf("[sync] invalid checksum")
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":    "invalid checksum",
 			"checksum": chk,

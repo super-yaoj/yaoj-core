@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -30,10 +31,12 @@ func (r Submission) Set(field string, filename string) {
 }
 
 // 加入文件（例如custom test就可以手动加test）
-// group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
-// field: 字段名
-// name: 文件名（一般不带路径）
-// reader：文件内容
+//
+//   group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
+//   field: 字段名
+//   name: 文件名（一般不带路径）
+//   reader：文件内容
+//
 func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
 	logger.Printf("SetSource in group %s's %q naming %q", group, field, name)
 	if r[group] == nil {
@@ -147,15 +150,9 @@ func (r SubmLimit) Validate(data []byte) error {
 	return nil
 }
 
-// 解压
-func LoadSubm(name string) (Submission, error) {
-	// Open the zip file
-	zipfile, err := zip.OpenReader(name)
-	if err != nil {
-		return nil, err
-	}
-	defer zipfile.Close()
-
+func loadSubmOpener(zipfile interface {
+	Open(name string) (fs.File, error)
+}) (Submission, error) {
 	file, _ := zipfile.Open("_config.json")
 	confdata, _ := io.ReadAll(file)
 	var pathmap map[workflow.Groupname]*map[string]string
@@ -174,28 +171,23 @@ func LoadSubm(name string) (Submission, error) {
 	return res, nil
 }
 
+// 解压
+func LoadSubm(name string) (Submission, error) {
+	zipfile, err := zip.OpenReader(name)
+	if err != nil {
+		return nil, err
+	}
+	defer zipfile.Close()
+
+	return loadSubmOpener(zipfile)
+}
+
 func LoadSubmData(data []byte) (Submission, error) {
-	// Open the zip file
 	reader := bytes.NewReader(data)
 	zipfile, err := zip.NewReader(reader, int64(len(data)))
 	if err != nil {
 		return nil, err
 	}
 
-	file, _ := zipfile.Open("_config.json")
-	confdata, _ := io.ReadAll(file)
-	var pathmap map[workflow.Groupname]*map[string]string
-	if err := json.Unmarshal(confdata, &pathmap); err != nil {
-		return nil, err
-	}
-
-	var res = Submission{}
-	for group, data := range pathmap {
-		for field, name := range *data {
-			file, _ := zipfile.Open(name)
-			res.SetSource(group, field, name, file)
-			file.Close()
-		}
-	}
-	return res, nil
+	return loadSubmOpener(zipfile)
 }

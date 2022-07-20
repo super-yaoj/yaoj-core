@@ -39,7 +39,7 @@ are not allowed.
 If subtask data occured (at least one field, at least one record), subtask is
 enabled.
 
-For some problem, different subtasks use different files to test contestant'
+For some problem, different subtasks use different files to test contestant's
 submission, for example, checker or input generator. Thus these data are stored
 in dir/data/tests/. Again, all subtasks' data have the same fields.
 

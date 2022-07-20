@@ -31,6 +31,7 @@ func testcaseOf(r *problem.ProbTestdata, subtaskid string) []map[string]string {
 	return res
 }
 
+// caching per submission running
 var pOutputCache = inMemoryCache[[]string]{
 	data: map[sha][]string{},
 }
@@ -39,6 +40,18 @@ var pResultCache = inMemoryCache[processor.Result]{
 }
 
 var runMutex sync.Mutex
+
+func initCache() {
+	if gcache == nil {
+		panic("global cache not initialized")
+	}
+
+	gcache.Resize(CacheSize)
+
+	// clear cache
+	pOutputCache.Reset()
+	pResultCache.Reset()
+}
 
 // Run all testcase in the dir. User option mode to choose from original tests,
 // pretests and extra tests, and control cache using.
@@ -49,11 +62,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 
 	logger.Printf("run prob in dir=%q with modes: %s", dir, strings.Join(mode, ","))
 
-	if gcache == nil {
-		return nil, logger.Errorf("global cache not initialized")
-	}
-
-	gcache.Resize(CacheSize)
+	initCache()
 
 	// check submission
 	for k := range r.Submission {
@@ -61,10 +70,6 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 			return nil, logger.Errorf("submission missing field %s", k)
 		}
 	}
-
-	// clear cache
-	pOutputCache.Reset()
-	pResultCache.Reset()
 
 	// download submission
 	inboundPath := subm.Download(dir)
@@ -241,15 +246,7 @@ func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Group
 
 	logger.Printf("run workflow directly dir=%s", dir)
 
-	if gcache == nil {
-		return nil, logger.Errorf("global cache not initialized")
-	}
-
-	gcache.Resize(CacheSize)
-
-	// clear cache
-	pOutputCache.Reset()
-	pResultCache.Reset()
+	initCache()
 
 	return runWorkflow(w, dir, inboundPath, fullscore, true)
 }
@@ -278,15 +275,7 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission, 
 
 	logger.Printf("run hack dir=%s usecache=%v", dir, usecache)
 
-	if gcache == nil {
-		return nil, logger.Errorf("global cache not initialized")
-	}
-
-	gcache.Resize(CacheSize)
-
-	// clear cache
-	pOutputCache.Reset()
-	pResultCache.Reset()
+	initCache()
 
 	hackin := hackSubm.Download(dir)
 	stdin := std.Download(dir)

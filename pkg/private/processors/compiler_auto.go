@@ -27,13 +27,13 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 	sub_ext := path.Ext(input[0][:len(input[0])-len(ext)])
 	var arg judger.OptionProvider
 
-	switch ext {
-	case ".c":
+	switch utils.SourceLang(ext) {
+	case utils.Lc:
 		arg = judger.WithArgument(
 			"/dev/null", "/dev/null", output[1], "/usr/bin/gcc", input[0], "-o", output[0],
 			"-O2", "-lm", "-DONLINE_JUDGE",
 		)
-	case ".cpp", ".cc":
+	case utils.Lcpp:
 		// detect c++ version
 		verArg := "--std=c++2a"
 		switch utils.SourceLang(sub_ext) {
@@ -53,7 +53,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 			"/dev/null", "/dev/null", output[1], "/usr/bin/g++", input[0], "-o", output[0],
 			"-O2", "-lm", "-DONLINE_JUDGE", verArg,
 		)
-	case ".py", ".python":
+	case utils.Lpython:
 		logger.Printf("detect python source")
 		err := compilePy(input[0], output[0], utils.SourceLang(sub_ext))
 		if err != nil {
@@ -91,6 +91,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 	return res.ProcResult()
 }
 
+// for invalid lang tag, python3 is used
 func compilePy(src, dest string, lang utils.LangTag) error {
 	data, err := os.ReadFile(src)
 	if err != nil {

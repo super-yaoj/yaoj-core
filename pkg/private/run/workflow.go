@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 
 	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
@@ -26,6 +27,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 
 	nodes := runtimeNodes(w.Node)
 
+	// check inbound
 	for i, group := range w.Inbound {
 		if group == nil {
 			return nil, logger.Errorf("w.Inbound[%s] == nil", i)
@@ -46,6 +48,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 		}
 	}
 
+	// change working dir
 	previousWd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -132,7 +135,7 @@ func (r sha) String() string {
 	return s
 }
 
-// SHA256 hash for file content.
+// SHA256 hash for file content and all suffix.
 // for any error, return empty hash
 func fileHash(name string) sha {
 	hash := sha256.New()
@@ -141,6 +144,17 @@ func fileHash(name string) sha {
 		return sha{}
 	}
 	defer f.Close()
+
+	name2 := name
+	for {
+		ext := path.Ext(name2)
+		if ext == "" {
+			break
+		}
+		logger.Printf("name2 ext %s", ext)
+		hash.Write([]byte(ext))
+		name2 = name2[:len(name2)-len(ext)]
+	}
 
 	if _, err := io.Copy(hash, f); err != nil {
 		return sha{}

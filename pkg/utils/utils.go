@@ -134,6 +134,7 @@ const (
 	Ljava
 	Lc
 	Lplain
+	Lpython
 )
 
 // 根据字符串推断程序语言
@@ -141,7 +142,7 @@ func SourceLang(s string) LangTag {
 	if strings.Contains(s, "java") {
 		return Ljava
 	}
-	if strings.Contains(s, "cpp") {
+	if strings.Contains(s, "cpp") || strings.Contains(s, "cc") {
 		if strings.Contains(s, fmt.Sprint(11)) {
 			return Lcpp11
 		}
@@ -160,7 +161,10 @@ func SourceLang(s string) LangTag {
 		if strings.Contains(s, fmt.Sprint(2)) {
 			return Lpython2
 		}
-		return Lpython3
+		if strings.Contains(s, fmt.Sprint(3)) {
+			return Lpython3
+		}
+		return Lpython
 	}
 	if strings.Contains(s, "go") {
 		return Lgo

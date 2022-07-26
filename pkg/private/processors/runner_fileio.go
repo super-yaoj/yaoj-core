@@ -53,7 +53,7 @@ func (r RunnerFileio) Run(input []string, output []string) *Result {
 	options := []judger.OptionProvider{
 		judger.WithArgument("/dev/null", "/dev/null", output[1], input[0]),
 		judger.WithJudger(judger.General),
-		judger.WithPolicy("builtin:_coverage_general_strict"),
+		judger.WithPolicy("builtin:yaoj"),
 		judger.WithLog(output[2], 0, false),
 	}
 	more, err := parseJudgerLimit(lines[0])

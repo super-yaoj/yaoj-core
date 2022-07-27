@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
@@ -183,16 +184,17 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	tl := parseInt(conf["time_limit"])
 	ml := parseInt(conf["memory_limit"])
 	ol := parseInt(conf["output_limit"])
-	limReader := bytes.NewReader([]byte(fmt.Sprintf(
-		"%d %d %d %d %d %d %d",
-		1000*60, // 1min
-		1000*tl,
-		0, // no limit
-		1024*1024*ml,
-		1024*1024*ml,
-		1024*1024*ol,
-		50,
-	)))
+
+	limReader := bytes.NewReader((&processors.RunConf{
+		RealTime: 1000 * 60, // 1min
+		CpuTime:  uint(tl) * 1000,
+		VirMem:   0,
+		RealMem:  uint(ml) * 1024 * 1024,
+		StkMem:   uint(ml) * 1024 * 1024,
+		Output:   uint(ol) * 1024 * 1024,
+		Fileno:   10,
+	}).Serialize())
+
 	plim, err := prob.AddFileReader("lim.txt", limReader)
 	if err != nil {
 		return nil, err

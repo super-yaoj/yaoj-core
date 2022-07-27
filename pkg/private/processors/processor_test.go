@@ -61,7 +61,17 @@ func TestProcessor(t *testing.T) {
 		fa := path.Join(dir, "a.rsi.in")
 		fb := path.Join(dir, "lim.rsi.in")
 		script.Echo("5 2").WriteFile(fa)
-		script.Echo("1000 1000 204857600 204857600 204857600 204857600 10").WriteFile(fb)
+
+		os.WriteFile(fb, (&processors.RunConf{
+			RealTime: 1000,
+			CpuTime:  1000,
+			VirMem:   204857600,
+			RealMem:  204857600,
+			StkMem:   204857600,
+			Output:   204857600,
+			Fileno:   10,
+		}).Serialize(), os.ModePerm)
+
 		runner := processors.RunnerStdio{}
 		res := runner.Run(
 			[]string{path.Join(dir, "dest"), fa, fb},
@@ -80,7 +90,18 @@ func TestProcessor(t *testing.T) {
 	t.Run("RunnerFileio", func(t *testing.T) {
 		script.Exec(fmt.Sprintf("clang++ testdata/main2.cpp -o %s", path.Join(dir, "dest2"))).Wait()
 		runner := processors.RunnerFileio{}
-		script.Echo("1000 1000 204857600 204857600 204857600 204857600 10\nb.in b.out").WriteFile(path.Join(dir, "lim2.in"))
+
+		os.WriteFile(path.Join(dir, "lim2.in"), (&processors.RunConf{
+			RealTime: 1000,
+			CpuTime:  1000,
+			VirMem:   204857600,
+			RealMem:  204857600,
+			StkMem:   204857600,
+			Output:   204857600,
+			Fileno:   10,
+			Inf:      "b.in",
+			Ouf:      "b.out",
+		}).Serialize(), os.ModePerm)
 
 		wd, err := os.Getwd()
 		if err != nil {

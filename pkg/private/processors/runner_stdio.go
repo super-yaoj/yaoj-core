@@ -23,7 +23,7 @@ func (r RunnerStdio) Run(input []string, output []string) *Result {
 	// make it executable
 	os.Chmod(input[0], 0744)
 
-	lim, err := os.ReadFile(input[2])
+	data, err := os.ReadFile(input[2])
 	if err != nil {
 		return &Result{
 			Code: processor.RuntimeError,
@@ -36,14 +36,15 @@ func (r RunnerStdio) Run(input []string, output []string) *Result {
 		judger.WithPolicy("builtin:yaoj"),
 		judger.WithLog(output[2], 0, false),
 	}
-	more, err := parseJudgerLimit(string(lim))
-	if err != nil {
+	var lim RunConf
+	if err := lim.Deserialize(data); err != nil {
 		return &Result{
 			Code: processor.RuntimeError,
-			Msg:  "parse judger limit: " + err.Error(),
+			Msg:  "parse limit: " + err.Error(),
 		}
 	}
-	options = append(options, more...)
+
+	options = append(options, runLimOptions(lim)...)
 	res, err := judger.Judge(options...)
 	if err != nil {
 		return &Result{

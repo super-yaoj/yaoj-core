@@ -8,6 +8,7 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/k0kubun/pp/v3"
+	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
@@ -27,7 +28,17 @@ func MakeProbData(t *testing.T) {
 
 	script.Echo("1 2").WriteFile(path.Join(dir, "a.in"))
 	script.Echo("3").WriteFile(path.Join(dir, "a.ans"))
-	script.Echo("1000 1000 204857600 204857600 204857600 204857600 10").WriteFile(path.Join(dir, "cpl.txt"))
+
+	os.WriteFile(path.Join(dir, "cpl.txt"), (&processors.RunConf{
+		RealTime: 1000,
+		CpuTime:  1000,
+		VirMem:   204857600,
+		RealMem:  204857600,
+		StkMem:   204857600,
+		Output:   204857600,
+		Fileno:   10,
+	}).Serialize(), os.ModePerm)
+
 	script.Echo("# A + B Problem").WriteFile(path.Join(dir, "tmp.md"))
 
 	probData.Fullscore = 100

@@ -1,9 +1,7 @@
 package processors
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -27,22 +25,21 @@ func (r RunnerFileio) Run(input []string, output []string) *Result {
 	// make it executable
 	os.Chmod(input[0], 0744)
 
-	lim, err := os.ReadFile(input[2])
+	data, err := os.ReadFile(input[2])
 	if err != nil {
 		return &Result{
 			Code: processor.RuntimeError,
 			Msg:  "open config: " + err.Error(),
 		}
 	}
-	lines := strings.Split(string(lim), "\n")
-	if len(lines) != 2 {
+	var lim RunConf
+	if err := lim.Deserialize(data); err != nil {
 		return &Result{
 			Code: processor.RuntimeError,
-			Msg:  "invalid config",
+			Msg:  "parse limit: " + err.Error(),
 		}
 	}
-	var inf, ouf string
-	fmt.Sscanf(lines[1], "%s%s", &inf, &ouf)
+	var inf, ouf string = lim.Inf, lim.Ouf
 	logger.Printf("inf=%q, out=%q", inf, ouf)
 	if _, err := utils.CopyFile(input[1], inf); err != nil {
 		return &Result{
@@ -56,14 +53,7 @@ func (r RunnerFileio) Run(input []string, output []string) *Result {
 		judger.WithPolicy("builtin:yaoj"),
 		judger.WithLog(output[2], 0, false),
 	}
-	more, err := parseJudgerLimit(lines[0])
-	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "parse judger limit: " + err.Error(),
-		}
-	}
-	options = append(options, more...)
+	options = append(options, runLimOptions(lim)...)
 	res, err := judger.Judge(options...)
 	if err != nil {
 		return &Result{

@@ -178,7 +178,7 @@ type ProbData struct {
 // Add file to r.dir/patch and return relative path
 func (r *ProbData) AddFile(name string, pathname string) (string, error) {
 	name = path.Join("patch", name)
-	logger.Printf("AddFile: %#v => %#v", pathname, name)
+	// logger.Printf("AddFile: %#v => %#v", pathname, name)
 	if _, err := utils.CopyFile(pathname, path.Join(r.dir, name)); err != nil {
 		return "", err
 	}
@@ -187,7 +187,7 @@ func (r *ProbData) AddFile(name string, pathname string) (string, error) {
 
 func (r *ProbData) AddFileReader(name string, file io.Reader) (string, error) {
 	name = path.Join("patch", name)
-	logger.Printf("AddFile: reader => %#v", name)
+	// logger.Printf("AddFile: reader => %#v", name)
 	destination, err := os.Create(path.Join(r.dir, name))
 	if err != nil {
 		return "", err
@@ -268,7 +268,7 @@ func copyRecord(rcd record) (res record) {
 }
 
 func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res record, err error) {
-	logger.Printf("Export Record #%d %#v", id, dircd)
+	// logger.Printf("Export Record #%d %#v", id, dircd)
 	os.MkdirAll(path.Join(newroot, dircd), os.ModePerm)
 	res = make(record)
 	for field, val := range rcd {
@@ -286,7 +286,7 @@ func (r *ProbData) exportRecord(id int, rcd record, newroot, dircd string) (res 
 }
 
 func (r *ProbData) exportTable(tb table, newroot, dirtb string) (table, error) {
-	logger.Printf("Export Table %#v", dirtb)
+	logger.Printf(" Export Table %#v", dirtb)
 	os.MkdirAll(path.Join(newroot, dirtb), os.ModePerm)
 	res := copyTable(tb)
 

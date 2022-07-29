@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
@@ -88,6 +89,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 				filename := gcache.GetSource(node.hash, label)
 				node.Output = append(node.Output, filename)
 			}
+			node.Result = &result
 		} else { // no cache
 			logger.Printf("Run node[%s] no cache", id)
 			for i := 0; i < len(node.Output); i++ {
@@ -121,6 +123,9 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 		runtimeNodes[name] = node.RuntimeNode
 	}
 	res := w.Analyze(w, runtimeNodes, fullscore)
+	sort.Slice(res.File, func(i, j int) bool {
+		return res.File[i].Title < res.File[j].Title
+	})
 
 	return &res, nil
 }

@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
@@ -27,25 +26,16 @@ func (r RunnerFileio) Run(input []string, output []string) *Result {
 
 	data, err := os.ReadFile(input[2])
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open config: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	var lim RunConf
 	if err := lim.Deserialize(data); err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "parse limit: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	var inf, ouf string = lim.Inf, lim.Ouf
 	logger.Printf("inf=%q, out=%q", inf, ouf)
 	if _, err := utils.CopyFile(input[1], inf); err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "copy: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	options := []judger.OptionProvider{
 		judger.WithArgument("/dev/null", "/dev/null", output[1], input[0]),
@@ -56,10 +46,7 @@ func (r RunnerFileio) Run(input []string, output []string) *Result {
 	options = append(options, runLimOptions(lim)...)
 	res, err := judger.Judge(options...)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	utils.CopyFile(ouf, output[0])
 	return res.ProcResult()

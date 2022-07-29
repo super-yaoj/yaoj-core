@@ -17,6 +17,8 @@ func init() {
 	ouLabel[`generator:testlib`]=[]string{`output`,`stderr`,`judgerlog`}
 	inLabel[`inputmaker`]=[]string{`source`,`option`,`generator`}
 	ouLabel[`inputmaker`]=[]string{`result`,`stderr`,`judgerlog`}
+	inLabel[`runner`]=[]string{`executable`,`stdin`,`conf`}
+	ouLabel[`runner`]=[]string{`stdout`,`stderr`,`judgerlog`}
 	inLabel[`runner:fileio`]=[]string{`executable`,`fin`,`config`}
 	ouLabel[`runner:fileio`]=[]string{`fout`,`stderr`,`judgerlog`}
 	inLabel[`runner:stdio`]=[]string{`executable`,`stdin`,`limit`}

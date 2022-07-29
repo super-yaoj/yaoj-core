@@ -25,17 +25,11 @@ func (r Inputmaker) Run(input []string, output []string) *Result {
 
 	option, err := os.ReadFile(input[1])
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open option: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	if strings.Contains(string(option), "raw") {
 		if _, err := utils.CopyFile(input[0], output[0]); err != nil {
-			return &Result{
-				Code: processor.RuntimeError,
-				Msg:  "copy: " + err.Error(),
-			}
+			return RtErrRes(err)
 		}
 		return &Result{Code: processor.Ok}
 	} else { // testlib

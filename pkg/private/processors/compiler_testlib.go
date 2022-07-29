@@ -7,7 +7,6 @@ import (
 	_ "embed"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
@@ -28,26 +27,17 @@ func (r CompilerTestlib) Label() (inputlabel []string, outputlabel []string) {
 func (r CompilerTestlib) Run(input []string, output []string) *Result {
 	file, err := os.Create("testlib.h")
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	_, err = file.Write(testlib)
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "write: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	file.Close()
 
 	src := utils.RandomString(10) + ".cpp"
 	if _, err := utils.CopyFile(input[0], src); err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "copy: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	res, err := judger.Judge(
 		judger.WithArgument("/dev/null", "/dev/null", output[1], "/usr/bin/g++", src, "-o", output[0], "-O2", "-Wall"),
@@ -58,10 +48,7 @@ func (r CompilerTestlib) Run(input []string, output []string) *Result {
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

@@ -58,20 +58,14 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 		err := compilePy(input[0], output[0], utils.SourceLang(sub_ext))
 		if err != nil {
 			logger.Printf("compile error: %s", err)
-			return &Result{
-				Code: processor.RuntimeError,
-				Msg:  err.Error(),
-			}
+			return RtErrRes(err)
 		}
 		return &processor.Result{
 			Code: processor.Ok,
 			Msg:  "ok",
 		}
 	default:
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  fmt.Sprintf("unknown source suffix %s", ext),
-		}
+		return SysErrRes(fmt.Errorf("unknown source suffix %s", ext))
 	}
 
 	res, err := judger.Judge(
@@ -83,10 +77,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

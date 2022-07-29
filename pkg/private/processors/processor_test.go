@@ -85,6 +85,18 @@ func TestProcessor(t *testing.T) {
 
 		output, _ := script.File(path.Join(dir, "dest.out")).String()
 		t.Log("output:", output)
+
+		// test Runner
+		res2 := processors.Runner{}.Run(
+			[]string{path.Join(dir, "dest"), fa, fb},
+			[]string{path.Join(dir, "dest.out"), path.Join(dir, "dest.err"), path.Join(dir, "dest.judger.log")},
+		)
+		if res2.Code != processor.Ok {
+			t.Errorf("invalid result")
+			return
+		}
+		output, _ = script.File(path.Join(dir, "dest.out")).String()
+		t.Log("output:", output)
 	})
 
 	t.Run("RunnerFileio", func(t *testing.T) {
@@ -127,6 +139,18 @@ func TestProcessor(t *testing.T) {
 		}
 
 		output, _ := script.File(path.Join(dir, "dest2.out")).String()
+		t.Log("output:", output)
+
+		// test Runner
+		res2 := processors.Runner{}.Run(
+			[]string{path.Join(dir, "dest2"), path.Join(dir, "a.rsi.in"), path.Join(dir, "lim2.in")},
+			[]string{path.Join(dir, "dest2.out"), path.Join(dir, "dest2.err"), path.Join(dir, "dest.judger2.log")},
+		)
+		if res2.Code != processor.Ok {
+			t.Errorf("invalid result")
+			return
+		}
+		output, _ = script.File(path.Join(dir, "dest2.out")).String()
 		t.Log("output:", output)
 	})
 

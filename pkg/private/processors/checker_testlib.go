@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Execute testlib checker
@@ -31,10 +30,7 @@ func (r CheckerTestlib) Run(input []string, output []string) *Result {
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

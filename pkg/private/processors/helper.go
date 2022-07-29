@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // runner config
 type RunConf struct {
 	RealTime, CpuTime, VirMem, RealMem, StkMem, Output, Fileno uint   // limitation
-	Inf, Ouf                                                   string // file io
+	Inf, Ouf                                                   string // input file name, output file name (not data)
 	Interpreter                                                string
 }
 
@@ -24,6 +25,10 @@ func (r *RunConf) Serialize() (res []byte) {
 
 func (r *RunConf) Deserialize(data []byte) error {
 	return json.Unmarshal(data, r)
+}
+
+func (r *RunConf) IsFileIO() bool {
+	return r.Inf != "" && r.Ouf != ""
 }
 
 // `s` contains a series of number seperated by space, denoting
@@ -54,4 +59,18 @@ func runLimOptions(s RunConf) []judger.OptionProvider {
 		options = append(options, judger.WithFileno(int(fl)))
 	}
 	return options
+}
+
+func RtErrRes(err error) *Result {
+	return &Result{
+		Code: processor.RuntimeError,
+		Msg:  err.Error(),
+	}
+}
+
+func SysErrRes(err error) *Result {
+	return &Result{
+		Code: processor.SystemError,
+		Msg:  err.Error(),
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Compile source file in all language.
@@ -22,10 +21,7 @@ func (r Compiler) Label() (inputlabel []string, outputlabel []string) {
 
 func (r Compiler) Run(input []string, output []string) *Result {
 	if err := os.Chmod(input[1], 0744); err != nil { // -rwxr--r--
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open script: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	defer os.Chmod(input[1], 0644) // -rw-r--r--
 	res, err := judger.Judge(
@@ -37,10 +33,7 @@ func (r Compiler) Run(input []string, output []string) *Result {
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

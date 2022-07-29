@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Execute testlib generator.
@@ -24,10 +23,7 @@ func (r GeneratorTestlib) Run(input []string, output []string) *Result {
 
 	args, err := os.ReadFile(input[1])
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open arguments: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	argv := strings.Split(string(args), " ")
 	finalArgv := []string{"/dev/null", output[0], output[1], input[0]}
@@ -45,10 +41,7 @@ func (r GeneratorTestlib) Run(input []string, output []string) *Result {
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

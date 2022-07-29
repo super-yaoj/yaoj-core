@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 // Run a program reading from stdin and print to stdout and stderr.
@@ -25,10 +24,7 @@ func (r RunnerStdio) Run(input []string, output []string) *Result {
 
 	data, err := os.ReadFile(input[2])
 	if err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "open limit: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 	options := []judger.OptionProvider{
 		judger.WithArgument(input[1], output[0], output[1], input[0]),
@@ -38,19 +34,13 @@ func (r RunnerStdio) Run(input []string, output []string) *Result {
 	}
 	var lim RunConf
 	if err := lim.Deserialize(data); err != nil {
-		return &Result{
-			Code: processor.RuntimeError,
-			Msg:  "parse limit: " + err.Error(),
-		}
+		return RtErrRes(err)
 	}
 
 	options = append(options, runLimOptions(lim)...)
 	res, err := judger.Judge(options...)
 	if err != nil {
-		return &Result{
-			Code: processor.SystemError,
-			Msg:  err.Error(),
-		}
+		return SysErrRes(err)
 	}
 	return res.ProcResult()
 }

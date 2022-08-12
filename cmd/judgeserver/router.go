@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -138,7 +139,16 @@ func CustomTest(ctx *gin.Context) {
 		defer os.RemoveAll(tmpdir)
 
 		os.WriteFile(path.Join(tmpdir, "_limit"),
-			[]byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
+			(&processors.RunConf{
+				RealTime: 10000,
+				CpuTime:  10000,
+				VirMem:   504857600,
+				RealMem:  504857600,
+				StkMem:   504857600,
+				Output:   50485760,
+				Fileno:   10,
+			}).Serialize(), os.ModePerm)
+		// []byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
 
 		pathmap := submission.Download(tmpdir)
 		pathmap[workflow.Gstatic] = &map[string]string{

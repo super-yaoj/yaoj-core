@@ -19,12 +19,11 @@ import (
 
 // 格式：
 //
-//   prob/
-//     data/ # 里面放数据（就是svn的1文件夹里的内容。也就是说data/problem.conf是配置文件
-//     statement/ # 放public资源，pdf啥的。不建子文件夹
-//       statement/statement.md # 特殊，放题面内容（UOJ好像是没有多语言题面的，所以默认中文
-//       statement/tutorial.pdf # 题解
-//
+//	prob/
+//	  data/ # 里面放数据（就是svn的1文件夹里的内容。也就是说data/problem.conf是配置文件
+//	  statement/ # 放public资源，pdf啥的。不建子文件夹
+//	    statement/statement.md # 特殊，放题面内容（UOJ好像是没有多语言题面的，所以默认中文
+//	    statement/tutorial.pdf # 题解
 type Uoj struct{}
 
 var _ Migrator = Uoj{}
@@ -286,7 +285,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	return problem.LoadDir(dest)
 }
 
-// 对于每一行，解析前两个不含空格的字符串分别作为字段和值
+// 对于每一行，第一个 token 作为字段，之后的作为值
 func parseConf(content []byte) (res map[string]string) {
 	res = map[string]string{}
 	lines := strings.Split(string(content), "\n")

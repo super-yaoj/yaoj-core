@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/language"
 )
 
+// 对外提供的 Problem 接口
 type Problem interface {
 	// 将题目打包为一个文件（压缩包）
 	DumpFile(filename string) error
@@ -138,6 +139,7 @@ var SupportLangs = []language.Tag{
 
 var langMatcher = language.NewMatcher(SupportLangs)
 
+// 猜测 locale 与支持的语言中匹配的语言。如果是 Und 那么返回第一个语言（默认）
 func GuessLang(lang string) string {
 	tag, _, _ := langMatcher.Match(language.Make(lang))
 	if tag == language.Und {

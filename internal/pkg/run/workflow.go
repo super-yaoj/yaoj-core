@@ -8,7 +8,6 @@ import (
 	"path"
 	"sort"
 
-	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -17,11 +16,15 @@ import (
 )
 
 // perform a workflow in a directory.
-// inboundPath: map[datagroup_name]*map[field]filename
+//
+// inboundPath: map[datagroup_name]map[field]filename
+//
 // do not remove cache when running workflow!
+//
 // usecache: 是否使用 cache
 func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 	fullscore float64, usecache bool) (*wk.Result, error) {
+
 	// 在评测完一整个 workflow 前都不能 resize
 	resizeMutex.Lock()
 	defer resizeMutex.Unlock()
@@ -52,16 +55,15 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 	// change working dir
 	previousWd, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		return nil, &Error{"getwd", err}
 	}
 	defer func() {
-		// logger.Printf("Chdir back to %q", previousWd)
 		os.Chdir(previousWd)
 	}()
 
 	err = os.Chdir(dir)
 	if err != nil {
-		return nil, err
+		return nil, &Error{"chdir", err}
 	}
 	// logger.Printf("Chdir %q", dir)
 
@@ -82,7 +84,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 			result := processor.Result{}
 			err := result.Unserialize(gcache.Get(node.hash, "@result"))
 			if err != nil {
-				return err
+				return &Error{"result unserialize", err}
 			}
 			node.Output = make([]string, 0)
 			for _, label := range processor.OutputLabel(node.ProcName) {
@@ -115,7 +117,7 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, &Error{"topo enum", err}
 	}
 
 	runtimeNodes := map[string]wk.RuntimeNode{}
@@ -166,7 +168,6 @@ func fileHash(name string) sha {
 	}
 	var b = hash.Sum(nil)
 	if len(b) != 32 {
-		pp.Print(b)
 		panic(b)
 	}
 	return *(*sha)(b)
@@ -191,9 +192,7 @@ func (r *rtNode) calcHash() {
 	}
 	hash.Write([]byte(r.ProcName))
 	var b = hash.Sum(nil)
-	// pp.Print(b)
 	if len(b) != 32 {
-		pp.Print(b)
 		panic(b)
 	}
 	r.hash = *(*sha)(b)
@@ -241,7 +240,6 @@ func topologicalEnum(w wk.Workflow, handler func(id string) error) error {
 		if !flag {
 			break
 		}
-		// logger.Printf("topo current id=%s", p)
 		indegree[p] = -1
 		for _, edge := range w.EdgeFrom(p) {
 			indegree[edge.To.Name]--
@@ -253,7 +251,7 @@ func topologicalEnum(w wk.Workflow, handler func(id string) error) error {
 	}
 	for id := range w.Node {
 		if indegree[id] != -1 {
-			return logger.Errorf("invalid DAG! id=%s", id)
+			return logger.Errorf("invalid DAG (id: %s)", id)
 		}
 	}
 	return nil

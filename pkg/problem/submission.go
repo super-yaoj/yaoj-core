@@ -21,6 +21,7 @@ type InmemoryFile struct {
 	Ctnt []byte
 }
 
+// 一个提交记录由入口组下若干个文件构成。这些文件的名称各不相同。
 type Submission map[workflow.Groupname]map[string]InmemoryFile
 
 // 根据文件路径名加入提交文件
@@ -142,6 +143,7 @@ type SubmLimit struct {
 }
 
 // 事实上只检查长度
+// TODO: 完善提交检查
 func (r SubmLimit) Validate(data []byte) error {
 	if len(data) > int(r.Length) {
 		return fmt.Errorf("file size limit exceed")

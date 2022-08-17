@@ -32,10 +32,10 @@ func testcaseOf(r *problem.ProbTestdata, subtaskid string) []map[string]string {
 }
 
 // caching per submission running
-var pOutputCache = inMemoryCache[[]string]{
+var pOutputCache = inmemoryStore[[]string]{
 	data: map[sha][]string{},
 }
-var pResultCache = inMemoryCache[processor.Result]{
+var pResultCache = inmemoryStore[processor.Result]{
 	data: map[sha]processor.Result{},
 }
 

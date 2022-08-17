@@ -37,7 +37,8 @@ type Result struct {
 	Code              Code
 	RealTime, CpuTime *time.Duration
 	Memory            *utils.ByteValue
-	Msg               string
+	// describing the status
+	Msg string
 }
 
 func (r Result) Serialize() []byte {

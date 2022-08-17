@@ -124,18 +124,13 @@ Project Link: [https://github.com/super-yaoj/yaoj-core](https://github.com/super
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-<!--
-## Acknowledgments
+## How to test coverage
 
-* []()
-* []()
-* []()
+```sh
+go test -coverprofile cover.out .
+go tool cover -html=cover.out
+```
 
-<p align="right">(<a href="#top">back to top</a>)</p>
--->
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/super-yaoj/yaoj-core.svg
 [contributors-url]: https://github.com/super-yaoj/yaoj-core/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/super-yaoj/yaoj-core.svg

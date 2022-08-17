@@ -1,35 +1,13 @@
 package processors
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
-// runner config
-type RunConf struct {
-	RealTime, CpuTime, VirMem, RealMem, StkMem, Output, Fileno uint   // limitation
-	Inf, Ouf                                                   string // input file name, output file name (not data)
-	Interpreter                                                string
-}
-
-func (r *RunConf) Serialize() (res []byte) {
-	res, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
-	}
-	return
-}
-
-func (r *RunConf) Deserialize(data []byte) error {
-	return json.Unmarshal(data, r)
-}
-
-func (r *RunConf) IsFileIO() bool {
-	return r.Inf != "" && r.Ouf != ""
-}
+type RunConf = processor.RunConf
 
 // `s` contains a series of number seperated by space, denoting
 // real time (ms), cpu time (ms), virtual memory (byte), real memory (byte),

@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 )
 
 // Compile source file in all language.

@@ -8,9 +8,9 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/k0kubun/pp/v3"
-	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
-	"github.com/super-yaoj/yaoj-core/pkg/private/run"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
@@ -29,7 +29,7 @@ func MakeProbData(t *testing.T) {
 	script.Echo("1 2").WriteFile(path.Join(dir, "a.in"))
 	script.Echo("3").WriteFile(path.Join(dir, "a.ans"))
 
-	os.WriteFile(path.Join(dir, "cpl.txt"), (&processors.RunConf{
+	os.WriteFile(path.Join(dir, "cpl.txt"), (&processor.RunConf{
 		RealTime: 1000,
 		CpuTime:  1000,
 		VirMem:   204857600,

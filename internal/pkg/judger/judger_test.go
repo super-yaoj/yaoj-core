@@ -1,15 +1,15 @@
 package judger_test
 
 import (
-	"log"
 	"path"
+	"testing"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 )
 
-func ExampleJudge() {
-	dir := "/tmp"
+func TestJudge(t *testing.T) {
+	dir := t.TempDir()
 	res, err := judger.Judge(
 		judger.WithArgument("/dev/null", path.Join(dir, "output"), "/dev/null", "/usr/bin/ls", "."),
 		judger.WithJudger(judger.General),
@@ -24,7 +24,8 @@ func ExampleJudge() {
 		judger.WithFileno(10),
 	)
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
+		return
 	}
-	log.Print(*res)
+	t.Log(*res)
 }

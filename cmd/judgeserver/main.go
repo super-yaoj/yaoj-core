@@ -10,8 +10,8 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/run"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
-	"github.com/super-yaoj/yaoj-core/pkg/private/run"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 )
 

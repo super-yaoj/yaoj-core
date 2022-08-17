@@ -9,8 +9,8 @@ import (
 	"sort"
 
 	"github.com/k0kubun/pp/v3"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
-	"github.com/super-yaoj/yaoj-core/pkg/private/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	wk "github.com/super-yaoj/yaoj-core/pkg/workflow"

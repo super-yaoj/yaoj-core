@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/private/judger"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 )
 
 // Execute testlib generator.

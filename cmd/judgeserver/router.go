@@ -55,12 +55,12 @@ func Judge(ctx *gin.Context) {
 			return
 		}
 		// 外层的submission就 workflow.Gsubm 里 "std" "hackee" 两个字段
-		std, err = problem.LoadSubmData((*submission[workflow.Gsubm])["std"].Ctnt)
+		std, err = problem.LoadSubmData(submission[workflow.Gsubm]["std"].Ctnt)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		hackee, err = problem.LoadSubmData((*submission[workflow.Gsubm])["hackee"].Ctnt)
+		hackee, err = problem.LoadSubmData(submission[workflow.Gsubm]["hackee"].Ctnt)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -151,7 +151,7 @@ func CustomTest(ctx *gin.Context) {
 		// []byte("10000 10000 504857600 504857600 504857600 54857600 10"), os.ModePerm)
 
 		pathmap := submission.Download(tmpdir)
-		pathmap[workflow.Gstatic] = &map[string]string{
+		pathmap[workflow.Gstatic] = map[string]string{
 			"limit": path.Join(tmpdir, "_limit"),
 		}
 

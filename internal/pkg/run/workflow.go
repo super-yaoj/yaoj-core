@@ -20,7 +20,7 @@ import (
 // inboundPath: map[datagroup_name]*map[field]filename
 // do not remove cache when running workflow!
 // usecache: 是否使用 cache
-func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[string]string,
+func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 	fullscore float64, usecache bool) (*wk.Result, error) {
 	// 在评测完一整个 workflow 前都不能 resize
 	resizeMutex.Lock()
@@ -37,8 +37,8 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath map[wk.Groupname]*map[st
 		if data == nil {
 			logger.Printf("warning: inboundPath[%s] == nil", i)
 		} else {
-			for j, bounds := range *group {
-				if name, ok := (*data)[j]; !ok {
+			for j, bounds := range group {
+				if name, ok := data[j]; !ok {
 					logger.Printf("warning: inboundPath: missing field %s %s", i, j)
 				} else {
 					for _, bound := range bounds {

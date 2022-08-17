@@ -21,7 +21,7 @@ type InmemoryFile struct {
 	Ctnt []byte
 }
 
-type Submission map[workflow.Groupname]*map[string]InmemoryFile
+type Submission map[workflow.Groupname]map[string]InmemoryFile
 
 // 根据文件路径名加入提交文件
 func (r Submission) Set(field string, filename string) {
@@ -32,15 +32,14 @@ func (r Submission) Set(field string, filename string) {
 
 // 加入文件（例如custom test就可以手动加test）
 //
-//   group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
-//   field: 字段名
-//   name: 文件名（一般不带路径）
-//   reader：文件内容
-//
+//	group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
+//	field: 字段名
+//	name: 文件名（一般不带路径）
+//	reader：文件内容
 func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
 	logger.Printf("SetSource in group %s's %q naming %q", group, field, name)
 	if r[group] == nil {
-		r[group] = &map[string]InmemoryFile{}
+		r[group] = map[string]InmemoryFile{}
 	}
 	var buf bytes.Buffer
 	io.Copy(&buf, reader)
@@ -48,7 +47,7 @@ func (r Submission) SetSource(group workflow.Groupname, field string, name strin
 		Name: path.Base(name),
 		Ctnt: buf.Bytes()[:],
 	}
-	(*r[group])[field] = imfile
+	r[group][field] = imfile
 }
 
 func (r Submission) DumpTo(writer io.Writer) error {
@@ -64,7 +63,7 @@ func (r Submission) DumpTo(writer io.Writer) error {
 		if pathmap[group] == nil {
 			pathmap[group] = &map[string]string{}
 		}
-		for field, imfile := range *data {
+		for field, imfile := range data {
 			filename := string(group) + "-" + field + "-" + path.Base(imfile.Name)
 			fileInzip, err := w.Create(filename)
 			if err != nil {
@@ -103,27 +102,27 @@ func (r Submission) DumpFile(name string) error {
 	return r.DumpTo(file)
 }
 
-// to path map
-func (r Submission) Download(dir string) (res map[workflow.Groupname]*map[string]string) {
+// to inbound groups
+func (r Submission) Download(dir string) (res workflow.InboundGroups) {
 	dir, err := filepath.Abs(dir)
 	if err != nil {
 		panic(err)
 	}
 
 	prefix := utils.RandomString(10)
-	res = map[workflow.Groupname]*map[string]string{}
+	res = map[workflow.Groupname]map[string]string{}
 	for group, data := range r {
 		if data == nil {
 			continue
 		}
-		res[group] = &map[string]string{}
-		for field, imfile := range *data {
+		res[group] = map[string]string{}
+		for field, imfile := range data {
 			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field+"-"+imfile.Name)
 			err := os.WriteFile(filename, imfile.Ctnt, os.ModePerm)
 			if err != nil {
 				panic(err)
 			}
-			(*res[group])[field] = filename
+			res[group][field] = filename
 		}
 	}
 	return res

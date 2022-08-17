@@ -73,18 +73,18 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 		graph.Node[name] = node
 	}
 
-	var vis = map[string]*map[string]bool{}
+	var vis = map[string]map[string]bool{}
 	mark := func(name string, label string) {
 		if vis[name] == nil {
-			vis[name] = &map[string]bool{}
+			vis[name] = map[string]bool{}
 		}
-		(*vis[name])[label] = true
+		vis[name][label] = true
 	}
 	get := func(name string, label string) bool {
 		if vis[name] == nil {
 			return false
 		}
-		return (*vis[name])[label]
+		return vis[name][label]
 	}
 
 	for _, edge := range r.edge {
@@ -130,9 +130,9 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 			mark(to, tolabel)
 		}
 		if graph.Inbound[Groupname(group)] == nil {
-			graph.Inbound[Groupname(group)] = &map[string][]Inbound{}
+			graph.Inbound[Groupname(group)] = map[string][]Inbound{}
 		}
-		grp := *graph.Inbound[Groupname(group)]
+		grp := graph.Inbound[Groupname(group)]
 		if grp[field] == nil {
 			grp[field] = []Inbound{}
 		}

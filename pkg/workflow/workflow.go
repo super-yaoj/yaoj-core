@@ -45,9 +45,12 @@ type WorkflowGraph struct {
 	Node map[string]Node
 	Edge []Edge
 	// inbound consists a series of data group.
-	// Inbound: map[datagroup_name]*map[field]Bound
-	Inbound map[Groupname]*map[string][]Inbound
+	// Inbound: map[datagroup_name]map[field]Bound
+	Inbound map[Groupname]map[string][]Inbound
 }
+
+// store the file path of workflow's inbound data
+type InboundGroups map[Groupname]map[string]string
 
 // Generate json content
 func (r *WorkflowGraph) Serialize() []byte {
@@ -171,7 +174,7 @@ func NewGraph() WorkflowGraph {
 	return WorkflowGraph{
 		Node:    map[string]Node{},
 		Edge:    []Edge{},
-		Inbound: map[Groupname]*map[string][]Inbound{},
+		Inbound: map[Groupname]map[string][]Inbound{},
 	}
 }
 

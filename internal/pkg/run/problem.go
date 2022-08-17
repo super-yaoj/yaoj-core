@@ -66,14 +66,14 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 
 	// check submission
 	for k := range r.Submission {
-		if _, ok := (*subm[workflow.Gsubm])[k]; !ok {
+		if _, ok := subm[workflow.Gsubm][k]; !ok {
 			return nil, logger.Errorf("submission missing field %s", k)
 		}
 	}
 
 	// download submission
 	inboundPath := subm.Download(dir)
-	inboundPath[workflow.Gstatic] = toPathMap(r, r.Static)
+	inboundPath[workflow.Gstatic] = *toPathMap(r, r.Static)
 
 	// parse mode
 	testdata := r.ProbTestdata
@@ -149,7 +149,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 				}
 			}
 
-			inboundPath[workflow.Gsubt] = toPathMap(r, subtask)
+			inboundPath[workflow.Gsubt] = *toPathMap(r, subtask)
 			tests := testcaseOf(&testdata, subtask["_subtaskid"])
 
 			// subtask score
@@ -165,7 +165,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 
 			for tid, test := range tests {
 				logger.Printf("test #%d", tid)
-				inboundPath[workflow.Gtests] = toPathMap(r, test)
+				inboundPath[workflow.Gtests] = *toPathMap(r, test)
 
 				// calc test fullscore
 				var test_score = score // Mmin or Mmax
@@ -204,7 +204,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 		}
 		var skip bool
 		for _, test := range testdata.Tests.Record {
-			inboundPath[workflow.Gtests] = toPathMap(r, test)
+			inboundPath[workflow.Gtests] = *toPathMap(r, test)
 
 			score := r.Fullscore // Mmin or Mmax
 			if testdata.CalcMethod == problem.Msum {
@@ -239,7 +239,7 @@ func RunProblem(r *problem.ProbData, dir string, subm problem.Submission, mode .
 }
 
 // mutex
-func RunWorkflow(w workflow.Workflow, dir string, inboundPath map[workflow.Groupname]*map[string]string,
+func RunWorkflow(w workflow.Workflow, dir string, inboundPath workflow.InboundGroups,
 	fullscore float64) (*workflow.Result, error) {
 	runMutex.Lock()
 	defer runMutex.Unlock()
@@ -280,10 +280,10 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission, 
 	hackin := hackSubm.Download(dir)
 	stdin := std.Download(dir)
 	stdin[workflow.Gtests] = hackin[workflow.Gtests]
-	stdin[workflow.Gstatic] = toPathMap(r, r.Static)
+	stdin[workflow.Gstatic] = *toPathMap(r, r.Static)
 	// 默认取第一个 subtask 的数据
 	if r.IsSubtask() {
-		stdin[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
+		stdin[workflow.Gsubt] = *toPathMap(r, r.Subtasks.Record[0])
 	}
 
 	halyz := hackAnalyzer{capture: r.HackIOMap}
@@ -306,16 +306,16 @@ func RunHack(r *problem.ProbData, dir string, hackSubm, std problem.Submission, 
 		file.Close()
 
 		if hackin[workflow.Gtests] == nil {
-			hackin[workflow.Gtests] = &map[string]string{}
+			hackin[workflow.Gtests] = map[string]string{}
 		}
-		(*hackin[workflow.Gtests])[field] = file.Name()
-		hackin[workflow.Gstatic] = toPathMap(r, r.Static)
+		hackin[workflow.Gtests][field] = file.Name()
+		hackin[workflow.Gstatic] = *toPathMap(r, r.Static)
 		// 默认取第一个 subtask 的数据
 		if r.IsSubtask() {
-			hackin[workflow.Gsubt] = toPathMap(r, r.Subtasks.Record[0])
+			hackin[workflow.Gsubt] = *toPathMap(r, r.Subtasks.Record[0])
 		}
 
-		logger.Printf("tests add %q: %q", field, (*hackin[workflow.Gtests])[field])
+		logger.Printf("tests add %q: %q", field, hackin[workflow.Gtests][field])
 	}
 
 	return runWorkflow(r.Workflow(), dir, hackin, r.Fullscore, usecache)

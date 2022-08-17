@@ -41,7 +41,7 @@ type DefaultAnalyzer struct {
 }
 
 func (r DefaultAnalyzer) Analyze(w Workflow, nodes map[string]RuntimeNode, fullscore float64) Result {
-	for _, bounds := range *w.Inbound[Gsubm] {
+	for _, bounds := range w.Inbound[Gsubm] {
 		for _, bound := range bounds {
 			nodes[bound.Name].Attr["dependon"] = "user"
 		}

@@ -1,12 +1,11 @@
 package workflow
 
 import (
-	"fmt"
-
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
-// Build a workflow
+// Builder builds a workflow. It doesn't need initialization manually
 type Builder struct {
 	node          map[string]Node
 	inbound, edge [][4]string
@@ -58,7 +57,7 @@ const (
 func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
 	r.tryInit()
 	if group != Gtests && group != Gstatic && group != Gsubm && group != Gsubt {
-		r.err = fmt.Errorf("invalid group %s", group)
+		r.err = &Error{"AddInbound", ErrInvalidGroupname}
 		return
 	}
 	r.inbound = append(r.inbound, [4]string{string(group), field, to, tolabel})
@@ -88,44 +87,42 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 	}
 
 	for _, edge := range r.edge {
-		from, frlabel := edge[0], edge[1]
+		from, frlabel, to, tolabel := edge[0], edge[1], edge[2], edge[3]
+		frlabelIndex := idxOf(processor.OutputLabel(graph.Node[from].ProcName), frlabel)
+		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
+
 		if _, ok := graph.Node[from]; !ok {
-			return nil, fmt.Errorf("invalid edge %v", edge)
+			return nil, &DataError{edge, ErrInvalidEdge}
+		} else if _, ok := graph.Node[to]; !ok {
+			return nil, &DataError{edge, ErrInvalidEdge}
+		} else if frlabelIndex == -1 {
+			return nil, &DataError{edge, ErrInvalidOutputLabel}
+		} else if tolabelIndex == -1 {
+			return nil, &DataError{edge, ErrInvalidInputLabel}
 		}
-		to, tolabel := edge[2], edge[3]
-		if _, ok := graph.Node[to]; !ok {
-			return nil, fmt.Errorf("invalid edge %v", edge)
-		}
-		fout := processor.OutputLabel(graph.Node[from].ProcName)
-		a := findIndex(fout, frlabel)
-		tin := processor.InputLabel(graph.Node[to].ProcName)
-		b := findIndex(tin, tolabel)
-		if a == -1 || b == -1 {
-			return nil, fmt.Errorf("invalid edge %v", edge)
-		}
+
 		if get(to, tolabel) {
-			return nil, fmt.Errorf("invalid edge %v: duplicated dest", edge)
+			return nil, &DataError{edge, ErrDuplicateDest}
 		} else {
 			mark(to, tolabel)
 		}
 		graph.Edge = append(graph.Edge, Edge{
-			From: Outbound{Name: from, LabelIndex: a},
-			To:   Inbound{Name: to, LabelIndex: b},
+			Outbound{from, frlabelIndex},
+			Inbound{to, tolabelIndex},
 		})
 	}
 	for _, edge := range r.inbound {
-		group, field := edge[0], edge[1]
-		to, tolabel := edge[2], edge[3]
+		group, field, to, tolabel := edge[0], edge[1], edge[2], edge[3]
+		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
+
 		if _, ok := graph.Node[to]; !ok {
-			return nil, fmt.Errorf("invalid edge %v", edge)
+			return nil, &DataError{edge, ErrInvalidEdge}
+		} else if tolabelIndex == -1 {
+			return nil, &DataError{edge, ErrInvalidInputLabel}
 		}
-		tin := processor.InputLabel(graph.Node[to].ProcName)
-		b := findIndex(tin, tolabel)
-		if b == -1 {
-			return nil, fmt.Errorf("invalid edge %v", edge)
-		}
+
 		if get(to, tolabel) {
-			return nil, fmt.Errorf("invalid edge %v: duplicated dest", edge)
+			return nil, &DataError{edge, ErrDuplicateDest}
 		} else {
 			mark(to, tolabel)
 		}
@@ -136,26 +133,18 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 		if grp[field] == nil {
 			grp[field] = []Inbound{}
 		}
-		grp[field] = append(grp[field], Inbound{
-			Name:       to,
-			LabelIndex: b,
-		})
+		grp[field] = append(grp[field], Inbound{to, tolabelIndex})
 	}
 	for name, node := range graph.Node {
 		for _, label := range processor.InputLabel(node.ProcName) {
 			if !get(name, label) {
-				return nil, fmt.Errorf("invalid graph: unfullfilled input: %s %s", name, label)
+				return nil, &DataError{name + ":" + label, ErrIncompleteNodeInput}
 			}
 		}
 	}
 	return &graph, nil
 }
 
-func findIndex(s []string, t string) int {
-	for i, str := range s {
-		if str == t {
-			return i
-		}
-	}
-	return -1
+func idxOf(s []string, t string) int {
+	return utils.FindIndex(s, t)
 }

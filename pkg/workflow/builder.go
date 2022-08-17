@@ -24,6 +24,14 @@ func (r *Builder) tryInit() {
 		r.inbound = [][4]string{}
 	}
 }
+
+// Add a node to the workflow.
+//
+// procName: specify its processor.
+//
+// key: whether its a key node.
+//
+// cache: whether caching its result in global cache.
 func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 	r.tryInit()
 	r.node[name] = Node{

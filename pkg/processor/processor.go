@@ -4,7 +4,6 @@ package processor
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -59,27 +58,4 @@ func (r *Result) Unserialize(data []byte) error {
 
 func init() {
 	gob.Register(Result{})
-}
-
-// runner config
-type RunConf struct {
-	RealTime, CpuTime, VirMem, RealMem, StkMem, Output, Fileno uint   // limitation
-	Inf, Ouf                                                   string // input file name, output file name (not data)
-	Interpreter                                                string
-}
-
-func (r *RunConf) Serialize() (res []byte) {
-	res, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
-	}
-	return
-}
-
-func (r *RunConf) Deserialize(data []byte) error {
-	return json.Unmarshal(data, r)
-}
-
-func (r *RunConf) IsFileIO() bool {
-	return r.Inf != "" && r.Ouf != ""
 }

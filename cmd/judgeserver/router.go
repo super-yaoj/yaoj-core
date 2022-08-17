@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/run"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
@@ -139,7 +139,7 @@ func CustomTest(ctx *gin.Context) {
 		defer os.RemoveAll(tmpdir)
 
 		os.WriteFile(path.Join(tmpdir, "_limit"),
-			(&processor.RunConf{
+			(&processors.RunConf{
 				RealTime: 10000,
 				CpuTime:  10000,
 				VirMem:   504857600,

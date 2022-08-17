@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
@@ -184,7 +184,7 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 	ml := parseInt(conf["memory_limit"])
 	ol := parseInt(conf["output_limit"])
 
-	limReader := bytes.NewReader((&processor.RunConf{
+	limReader := bytes.NewReader((&processors.RunConf{
 		RealTime: 1000 * 60, // 1min
 		CpuTime:  uint(tl) * 1000,
 		VirMem:   0,

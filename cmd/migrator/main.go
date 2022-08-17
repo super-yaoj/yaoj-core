@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/super-yaoj/yaoj-core/pkg/migrator"
+	"github.com/super-yaoj/yaoj-core/internal/app/migrator"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 

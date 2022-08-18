@@ -107,8 +107,8 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 			mark(to, tolabel)
 		}
 		graph.Edge = append(graph.Edge, Edge{
-			Outbound{from, frlabelIndex},
-			Inbound{to, tolabelIndex},
+			Outbound{from, frlabel},
+			Inbound{to, tolabel},
 		})
 	}
 	for _, edge := range r.inbound {
@@ -133,7 +133,7 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 		if grp[field] == nil {
 			grp[field] = []Inbound{}
 		}
-		grp[field] = append(grp[field], Inbound{to, tolabelIndex})
+		grp[field] = append(grp[field], Inbound{to, tolabel})
 	}
 	for name, node := range graph.Node {
 		for _, label := range processor.InputLabel(node.ProcName) {

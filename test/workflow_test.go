@@ -30,7 +30,6 @@ func MakeWorkflowGraph(t *testing.T) {
 
 	_ = workflow.Workflow{
 		WorkflowGraph: graph,
-		Analyzer:      workflow.DefaultAnalyzer{},
 	}
 
 	/*

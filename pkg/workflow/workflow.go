@@ -3,10 +3,9 @@ package workflow
 import (
 	"encoding/json"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
@@ -14,8 +13,8 @@ import (
 type Bound struct {
 	// name of the node
 	Name string
-	// index of the file in input (output) array
-	LabelIndex int
+	// label of the input/output store
+	Label string
 }
 
 // Inbound 是读入数据的端口
@@ -50,7 +49,7 @@ type WorkflowGraph struct {
 }
 
 // store the file path of workflow's inbound data
-type InboundGroups map[Groupname]map[string]string
+type InboundGroups map[Groupname]map[string]data.FileStore
 
 // Generate json content
 func (r *WorkflowGraph) Serialize() []byte {
@@ -105,7 +104,6 @@ func LoadFile(path string) (*WorkflowGraph, error) {
 // workflow describes how to perform a single testcase's judgement
 type Workflow struct {
 	*WorkflowGraph
-	Analyzer
 }
 
 type ResultMeta struct {
@@ -138,37 +136,6 @@ type ResultFileDisplay struct {
 	Content string
 }
 
-func isExecAny(mode os.FileMode) bool {
-	return mode&0111 != 0
-}
-
-func fetchFileContent(path string, len int) []byte {
-	file, err := os.Open(path)
-	if err != nil {
-		return []byte("")
-	}
-	defer file.Close()
-
-	stat, _ := file.Stat()
-	if isExecAny(stat.Mode()) {
-		return []byte("executable file")
-	}
-	b := make([]byte, len)
-
-	file.Read(b)
-	return b
-}
-
-// Try to display content of a text file with max-length limitation.
-// It is well-processed if an executable file is provided.
-func FileDisplay(path string, title string, len int) ResultFileDisplay {
-	content := strings.TrimRight(string(fetchFileContent(path, len)), "\x00 \n\t\r")
-	return ResultFileDisplay{
-		Title:   title,
-		Content: content,
-	}
-}
-
 // Create an empty WorkflowGraph
 func NewGraph() WorkflowGraph {
 	return WorkflowGraph{
@@ -176,16 +143,4 @@ func NewGraph() WorkflowGraph {
 		Edge:    []Edge{},
 		Inbound: map[Groupname]map[string][]Inbound{},
 	}
-}
-
-type RuntimeNode struct {
-	Node
-	// paths of input files
-	Input []string
-	// paths of output files
-	Output []string
-	// result of processor
-	Result *processor.Result
-	// whether its output is determined by problem-wide things only
-	Attr map[string]string
 }

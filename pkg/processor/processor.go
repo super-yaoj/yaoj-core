@@ -6,16 +6,27 @@ import (
 	"encoding/gob"
 	"time"
 
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
+type Bounds map[string]data.FileStore
+type Inbounds Bounds
+type Outbouds Bounds
+
 // Processor takes a series of input (files) and generates a series of outputs.
 type Processor interface {
-	// Report human-readable label for each input and output
+	// Report human-readable label for each input and output.
+	// Labels are used in workflow (especially builder).
 	Label() (inputlabel []string, outputlabel []string)
 	// Given a fixed number of input files, generate output to  corresponding files
 	// with execution result. It's ok if result == nil, which means success.
-	Run(input []string, output []string) (result *Result)
+	// Run(inputs []string, outputs []string) (result *Result)
+
+	// Given a fixed number of input files, generate output to  corresponding files
+	// with execution result. It's ok if result == nil, which means success.
+	// Inputs are considered unordered.
+	Process(inputs Inbounds, outputs Outbouds) (result *Result)
 }
 
 type Code int
@@ -31,6 +42,8 @@ const (
 	ExitError
 )
 
+// Result of processor' execution
+//
 // Code is required, others are optional
 type Result struct {
 	// Result status：OK/RE/MLE/...

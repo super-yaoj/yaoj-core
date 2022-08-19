@@ -12,7 +12,7 @@ import (
 
 type Bounds map[string]data.FileStore
 type Inbounds Bounds
-type Outbouds Bounds
+type Outbounds Bounds
 
 // Processor takes a series of input (files) and generates a series of outputs.
 type Processor interface {
@@ -26,7 +26,7 @@ type Processor interface {
 	// Given a fixed number of input files, generate output to  corresponding files
 	// with execution result. It's ok if result == nil, which means success.
 	// Inputs are considered unordered.
-	Process(inputs Inbounds, outputs Outbouds) (result *Result)
+	Process(inputs Inbounds, outputs Outbounds) (result *Result)
 }
 
 type Code int

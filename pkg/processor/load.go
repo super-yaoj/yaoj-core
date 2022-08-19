@@ -1,9 +1,9 @@
 package processor
 
-import (
+/*import (
 	"fmt"
 	goPlugin "plugin"
-)
+)*/
 
 // Plugin describes how to build a custom processor by creating a shared
 // library with specific symbol exposed.
@@ -18,7 +18,7 @@ import (
 //     func Label() (input []string, output []string)
 //     func Main(inputs []string, outputs []string) int
 //
-func LoadPlugin(plugin string) (Processor, error) {
+/*func LoadPlugin(plugin string) (Processor, error) {
 	p, err := goPlugin.Open(plugin)
 	if err != nil {
 		return nil, err
@@ -77,4 +77,4 @@ func (r *pluginProcessor) Run(input []string, output []string) *Result {
 
 func (r *pluginProcessor) Label() (inputlabel []string, outputlabel []string) {
 	return r.inputLabel, r.outputLabel
-}
+}*/

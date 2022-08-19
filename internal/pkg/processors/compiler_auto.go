@@ -1,10 +1,7 @@
 package processors
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"path"
+	"errors"
 	"strings"
 	"time"
 
@@ -13,35 +10,67 @@ import (
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
-	"github.com/super-yaoj/yaoj-core/pkg/workflow"
+)
+
+var (
+	ErrUnknownLang = errors.New("unknown language tag")
 )
 
 // Compile source file in all language.
+//
 // Time limitation: 1min.
+//
+// 各语言默认参数如下：
+//
+// Lc: gcc [source] -o [result]
+//
+// Lcpp: g++ [source] -o [result]
+//
+// Lcpp11: g++ [source] -o [result] --std=c++11
+//
+// Lcpp14: g++ [source] -o [result] --std=c++14
+//
+// Lcpp17: g++ [source] -o [result] --std=c++17
+//
+// Lcpp20: g++ [source] -o [result] --std=c++20
+//
+// Lpython, Lpython3: 用 cython 转化为 c 语言文件然后编译
 type CompilerAuto struct {
-	// input: source
+	// input: source option
 	// output: result, log, judgerlog
 }
 
 func (r CompilerAuto) Label() (inputlabel []string, outputlabel []string) {
-	return []string{"source"}, []string{"result", "log", "judgerlog"}
+	return []string{"source", "option"}, []string{"result", "log", "judgerlog"}
 }
 
-func (r CompilerAuto) Run(input []string, output []string) *Result {
-	ext := path.Ext(input[0])
-	sub_ext := path.Ext(input[0][:len(input[0])-len(ext)])
-	var arg judger.OptionProvider
+func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Result) {
+	var argv []string
+	// parse compile option
+	data, err := inputs["option"].Get()
+	if err != nil {
+		return SysErrRes(err)
+	}
+	var conf = &CompileConf{}
+	err = conf.Deserialize(data)
+	if err != nil {
+		return SysErrRes(err)
+	}
 
-	switch utils.SourceLang(ext) {
+	basename := utils.RandomString(10)
+
+	switch conf.Lang {
 	case utils.Lc:
-		arg = judger.WithArgument(
-			"/dev/null", "/dev/null", output[1], "/usr/bin/gcc", input[0], "-o", output[0],
-			"-O2", "-lm", "-DONLINE_JUDGE",
-		)
-	case utils.Lcpp:
+		inputs["source"].DupFile(basename+".c", 0644)
+		argv = []string{
+			"/dev/null", "/dev/null", outputs["log"].Path(),
+			"/usr/bin/gcc", basename + ".c", "-o", outputs["result"].Path(),
+		}
+	case utils.Lcpp, utils.Lcpp11, utils.Lcpp14, utils.Lcpp17, utils.Lcpp20:
+		inputs["source"].DupFile(basename+".cpp", 0644)
 		// detect c++ version
-		verArg := "--std=c++2a"
-		switch utils.SourceLang(sub_ext) {
+		verArg := ""
+		switch conf.Lang {
 		case utils.Lcpp11:
 			verArg = "--std=c++11"
 		case utils.Lcpp14:
@@ -54,45 +83,43 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 
 		logger.Printf("auto compile source lang ver: %s", verArg)
 
-		arg = judger.WithArgument(
-			"/dev/null", "/dev/null", output[1], "/usr/bin/g++", input[0], "-o", output[0],
-			"-O2", "-lm", "-DONLINE_JUDGE", verArg,
-		)
-	case utils.Lpython: // 目前只编译 python3
+		args := []string{
+			"/dev/null", "/dev/null", outputs["log"].Path(),
+			"/usr/bin/g++", basename + ".cpp", "-o", outputs["result"].Path(),
+		}
+		if verArg != "" {
+			args = append(args, verArg)
+		}
+		argv = args
+	case utils.Lpython, utils.Lpython3: // 目前只编译 python3
 		logger.Printf("detect python source")
 		c_src := utils.RandomString(10) + ".c"
 		py_src := utils.RandomString(10) + ".py"
-		utils.CopyFile(input[0], py_src)
+		// compile source to c file
+		utils.CopyFile(inputs["source"].Path(), py_src)
 		res, err := judger.Judge(
 			judger.WithPolicy("builtin:free"),
-			judger.WithLog(output[2], 0, false),
+			judger.WithLog(outputs["judgerlog"].Path(), 0, false),
 			judger.WithRealTime(time.Minute),
 			judger.WithOutput(10*judger.MB),
 			// 名字里含有 '-' cython 会报错
-			judger.WithArgument("/dev/null", "/dev/null", output[1], "/usr/bin/cython", py_src, "--embed", "-3", "-o", c_src),
+			judger.WithArgument("/dev/null", "/dev/null", outputs["log"].Path(),
+				"/usr/bin/cython", py_src, "--embed", "-3", "-o", c_src),
 		)
 		if err != nil {
 			return SysErrRes(err)
 		}
 		if res.Code != judger.Ok { // cython 编译出错
 			logger.Printf("cython compile error!")
-			pp.Print(res)
-			pp.Print(workflow.FileDisplay(output[1], "compile log", 1000))
-			return res.ProcResult()
+			res := res.ProcResult()
+			res.Msg = "cython compile: " + res.Msg
+			return res
 		}
 
+		// compile c file using gcc
 		CFLAGS, _ := script.Exec("python3-config --includes").String()
-
 		LDFLAGS, _ := script.Exec("python3-config --ldflags").String()
 		PY_VER, _ := script.Exec(`python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))'`).String()
-		/*arg = judger.WithArgument(
-			"/dev/null", "/dev/null", output[1],
-			"/usr/bin/gcc", strings.TrimSpace(CFLAGS),
-			//"-Os",
-			strings.TrimSpace(LDFLAGS), strings.TrimSpace("-lpython"+PY_VER),
-			c_src, "-o", output[0],
-			//"-DONLINE_JUDGE",
-		)*/
 		out, err := script.Exec(strings.Join([]string{
 			"/usr/bin/gcc",
 			strings.TrimSpace(CFLAGS),
@@ -100,7 +127,7 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 			strings.TrimSpace("-lpython" + PY_VER),
 			c_src,
 			"-o",
-			output[0],
+			outputs["result"].Path(),
 			"-Os",
 		}, " ")).String()
 		if err != nil {
@@ -112,49 +139,23 @@ func (r CompilerAuto) Run(input []string, output []string) *Result {
 			Msg:  "",
 		}
 	default:
-		return SysErrRes(fmt.Errorf("unknown source suffix %s", ext))
+		return SysErrRes(ErrUnknownLang)
 	}
 
+	// compile other language
+	argv = append(argv, conf.ExtraArgs...)
 	res, err := judger.Judge(
-		arg,
+		judger.WithArgument(argv...),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(output[2], 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
 		judger.WithRealTime(time.Minute),
 		judger.WithOutput(10*judger.MB),
 	)
 	if err != nil {
 		return SysErrRes(err)
 	}
-	pp.Print(res)
-	pp.Print(workflow.FileDisplay(output[1], "compile log", 1000))
-	log.Print(os.Environ())
 	return res.ProcResult()
 }
-
-// for invalid lang tag, python3 is used
-/*func compilePy(src, dest string, lang utils.LangTag) error {
-	data, err := os.ReadFile(src)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if lang == utils.Lpython2 {
-		file.WriteString("#!/bin/env python2\n\n")
-	} else {
-		file.WriteString("#!/bin/env python3\n\n")
-	}
-	file.Write(data)
-	if err := file.Chmod(0744); err != nil {
-		return err
-	}
-	return nil
-}*/
 
 var _ Processor = CompilerAuto{}

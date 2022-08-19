@@ -16,14 +16,8 @@ func Register(name string, proc Processor) {
 }
 
 func init() {
-	Register("checker:hcmp", CheckerHcmp{})
 	Register("checker:testlib", CheckerTestlib{})
-	Register("compiler", Compiler{})
 	Register("compiler:auto", CompilerAuto{})
 	Register("compiler:testlib", CompilerTestlib{})
-	Register("generator:testlib", GeneratorTestlib{})
-	Register("inputmaker", Inputmaker{})
-	Register("runner", Runner{})
-	Register("runner:fileio", RunnerFileio{})
-	Register("runner:stdio", RunnerStdio{})
+	Register("runner:auto", RunnerAuto{})
 }

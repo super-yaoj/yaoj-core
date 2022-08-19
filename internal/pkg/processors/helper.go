@@ -6,13 +6,15 @@ import (
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
+	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 // runner config
 type RunConf struct {
-	RealTime, CpuTime, VirMem, RealMem, StkMem, Output, Fileno uint   // limitation
-	Inf, Ouf                                                   string // input file name, output file name (not data)
-	Interpreter                                                string
+	RealTime, CpuTime, VirMem, RealMem, StkMem, Output, Fileno uint // limitation
+	// 如果 Inf 和 Ouf 都非空那么识别为文件 IO
+	Inf, Ouf    string // input file name, output file name (not data)
+	Interpreter string
 }
 
 func (r *RunConf) Serialize() (res []byte) {
@@ -73,4 +75,24 @@ func SysErrRes(err error) *Result {
 		Code: processor.SystemError,
 		Msg:  err.Error(),
 	}
+}
+
+// 编译配置
+type CompileConf struct {
+	// 编译语言
+	Lang utils.LangTag
+	// 额外的命令行参数（对于 python 来说没用）
+	ExtraArgs []string
+}
+
+func (r *CompileConf) Serialize() (res []byte) {
+	res, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (r *CompileConf) Deserialize(data []byte) error {
+	return json.Unmarshal(data, r)
 }

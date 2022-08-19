@@ -24,26 +24,29 @@ func (r CompilerTestlib) Label() (inputlabel []string, outputlabel []string) {
 	return []string{"source"}, []string{"result", "log", "judgerlog"}
 }
 
-func (r CompilerTestlib) Run(input []string, output []string) *Result {
-	file, err := os.Create("testlib.h")
+func (r CompilerTestlib) Process(inputs Inbounds, outputs Outbounds) (result *Result) {
+	// create testlib.h
+	err := os.WriteFile("testlib.h", testlib, os.ModePerm)
 	if err != nil {
-		return RtErrRes(err)
+		return SysErrRes(err)
 	}
-	_, err = file.Write(testlib)
-	if err != nil {
-		return RtErrRes(err)
-	}
-	file.Close()
-
+	// create src (*.cpp)
 	src := utils.RandomString(10) + ".cpp"
-	if _, err := utils.CopyFile(input[0], src); err != nil {
-		return RtErrRes(err)
+	data, err := inputs["source"].Get()
+	if err != nil {
+		return SysErrRes(err)
 	}
+	err = os.WriteFile(src, data, os.ModePerm)
+	if err != nil {
+		return SysErrRes(err)
+	}
+	// compile
 	res, err := judger.Judge(
-		judger.WithArgument("/dev/null", "/dev/null", output[1], "/usr/bin/g++", src, "-o", output[0], "-O2", "-Wall"),
+		judger.WithArgument("/dev/null", "/dev/null", outputs["log"].Path(),
+			"/usr/bin/g++", src, "-o", outputs["result"].Path(), "-O2", "-Wall"),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(output[2], 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
 		judger.WithRealTime(time.Minute),
 		judger.WithOutput(10*judger.MB),
 	)

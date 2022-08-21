@@ -41,4 +41,7 @@ type FileStore interface {
 	Store
 	Filer
 	ModeSetter
+
+	// copy to file
+	DupFile(name string, mode os.FileMode) error
 }

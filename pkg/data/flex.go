@@ -116,9 +116,53 @@ func (r *Flex) ChangePath(name string) error {
 	return nil
 }
 
+func (r *Flex) DupFile(name string, mode os.FileMode) error {
+	data, err := r.Get()
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(name, data, mode)
+}
+
 var _ FileStore = (*Flex)(nil)
 
-// flex store with filepath initialized
+// flex store with filepath initialized (empty content)
 func FlexWithPath(name string) *Flex {
 	return &Flex{filepath: name}
+}
+
+// flex store with file initialized
+func FlexWithFile(name string) *Flex {
+	res := &Flex{
+		mode:     mFile,
+		filepath: name,
+	}
+	return res
+}
+
+func FlexWithData(data []byte) *Flex {
+	res := &Flex{}
+	res.Set(data)
+	return res
+}
+
+func NewFlex(name string, data []byte) *Flex {
+	return &Flex{
+		mode:     mCtnt,
+		filepath: name,
+		content:  data,
+	}
+}
+
+func FlexFromStore(store Store) (*Flex, error) {
+	res := &Flex{}
+	data, err := store.Get()
+	if err != nil {
+		return nil, err
+	}
+	err = res.Set(data)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

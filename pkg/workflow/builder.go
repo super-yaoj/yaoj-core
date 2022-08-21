@@ -45,29 +45,20 @@ func (r *Builder) AddEdge(from, frlabel, to, tolabel string) {
 	r.edge = append(r.edge, [4]string{from, frlabel, to, tolabel})
 }
 
-type Groupname string
-
-const (
-	Gtests  Groupname = "tests"
-	Gsubt   Groupname = "Subtask"
-	Gstatic Groupname = "static"
-	Gsubm   Groupname = "submission"
-)
-
 func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
 	r.tryInit()
-	if group != Gtests && group != Gstatic && group != Gsubm && group != Gsubt {
+	if group != Gtests && group != Gstatic && group != Gsubm {
 		r.err = &Error{"AddInbound", ErrInvalidGroupname}
 		return
 	}
 	r.inbound = append(r.inbound, [4]string{string(group), field, to, tolabel})
 }
 
-func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
+func (r *Builder) Workflow() (*Workflow, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
-	graph := NewGraph()
+	graph := New()
 	for name, node := range r.node {
 		graph.Node[name] = node
 	}
@@ -142,7 +133,7 @@ func (r *Builder) WorkflowGraph() (*WorkflowGraph, error) {
 			}
 		}
 	}
-	return &graph, nil
+	return graph, nil
 }
 
 func idxOf(s []string, t string) int {

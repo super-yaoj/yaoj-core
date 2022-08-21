@@ -11,18 +11,15 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
-// 存储文件的路径
-type InmemoryFile struct {
-	Name string
-	Ctnt []byte
-}
-
-// 一个提交记录由入口组下若干个文件构成。这些文件的名称各不相同。
-type Submission map[workflow.Groupname]map[string]InmemoryFile
+// 一个提交记录由入口组下若干个文件构成。
+//
+// 考虑到对 hack 的支持，一个提交可以不止包含 Gsubm 域的内容
+type Submission map[workflow.Groupname]map[string]data.Store
 
 // 根据文件路径名加入提交文件
 func (r Submission) Set(field string, filename string) {
@@ -40,41 +37,43 @@ func (r Submission) Set(field string, filename string) {
 func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
 	logger.Printf("SetSource in group %s's %q naming %q", group, field, name)
 	if r[group] == nil {
-		r[group] = map[string]InmemoryFile{}
+		r[group] = make(map[string]data.Store)
 	}
-	var buf bytes.Buffer
-	io.Copy(&buf, reader)
-	imfile := InmemoryFile{
-		Name: path.Base(name),
-		Ctnt: buf.Bytes()[:],
+	ctnt, err := io.ReadAll(reader)
+	if err != nil {
+		panic(err)
 	}
-	r[group][field] = imfile
+	r[group][field] = data.NewInMemory(ctnt)
 }
 
 func (r Submission) DumpTo(writer io.Writer) error {
 	w := zip.NewWriter(writer)
 	defer w.Close()
 
-	var pathmap = map[workflow.Groupname]*map[string]string{}
+	var pathmap = map[workflow.Groupname]map[string]string{}
 
 	for group, data := range r {
 		if data == nil {
 			continue
 		}
 		if pathmap[group] == nil {
-			pathmap[group] = &map[string]string{}
+			pathmap[group] = map[string]string{}
 		}
-		for field, imfile := range data {
-			filename := string(group) + "-" + field + "-" + path.Base(imfile.Name)
+		for field, store := range data {
+			filename := string(group) + "-" + field
 			fileInzip, err := w.Create(filename)
 			if err != nil {
 				return err
 			}
-			_, err = fileInzip.Write(imfile.Ctnt)
+			ctnt, err := store.Get()
 			if err != nil {
 				return err
 			}
-			(*pathmap[group])[field] = filename
+			_, err = fileInzip.Write(ctnt)
+			if err != nil {
+				return err
+			}
+			pathmap[group][field] = filename
 		}
 	}
 
@@ -111,25 +110,28 @@ func (r Submission) Download(dir string) (res workflow.InboundGroups) {
 	}
 
 	prefix := utils.RandomString(10)
-	res = map[workflow.Groupname]map[string]string{}
-	for group, data := range r {
-		if data == nil {
+	res = workflow.InboundGroups{}
+	for group, gdata := range r {
+		if gdata == nil {
 			continue
 		}
-		res[group] = map[string]string{}
-		for field, imfile := range data {
-			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field+"-"+imfile.Name)
-			err := os.WriteFile(filename, imfile.Ctnt, os.ModePerm)
+		res[group] = make(map[string]data.FileStore)
+		for field, store := range gdata {
+			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field)
+			flex, err := data.FlexFromStore(store)
 			if err != nil {
 				panic(err)
 			}
-			res[group][field] = filename
+			flex.ChangePath(filename)
+			res[group][field] = flex
 		}
 	}
 	return res
 }
 
 // 针对某个域的提交文件配置
+//
+// json mashalable
 type SubmConf map[string]SubmLimit
 
 // Limitation for submitted files

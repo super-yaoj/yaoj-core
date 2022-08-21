@@ -1,24 +1,6 @@
 /*
 Package problem is a package for test problem manipulation.
 
-# Overview
-
-A test problem is store in a directory, for example, "dir", with following
-structure:
-
-	|-dir/problem.json
-	|-dir/data/
-	|---dir/tests/
-	|---dir/subtasks/
-	|---dir/static/
-	|-dir/workflow/ stores test workflow
-	|---dir/workflow/graph.json stores the workflow graph
-	|-dir/statement/ stores statement files
-	|---dir/statement/s.[lang][id].md stores statement files
-	|---dir/statement/t.[lang][id].md stores tutorial files
-	|---dir/statement/xxx stores assert files
-	|-dir/patch/ stores added files
-
 # Tests
 
 Usually a problem contains multiple testcases, whose data are stored in

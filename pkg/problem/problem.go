@@ -1,135 +1,14 @@
 package problem
 
 import (
-	"os"
-	"path"
+	"bytes"
+	"encoding/json"
+	"text/template"
 
 	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 	"golang.org/x/text/language"
 )
-
-// 对外提供的 Problem 接口
-type Problem interface {
-	// 将题目打包为一个文件（压缩包）
-	DumpFile(filename string) error
-	// 获取题面，lang 见 http://www.lingoes.net/zh/translator/langcode.htm
-	Stmt(lang string) []byte
-	// 题解
-	Tutr(lang string) []byte
-	// 附加文件
-	Assert(filename string) (*os.File, error)
-	// 获取提交格式的数据表格
-	SubmConf() SubmConf
-	// 评测用的
-	Data() *ProbData
-	// 展示数据
-	DataInfo() DataInfo
-	// 是否支持 hack
-	Hackable() bool
-}
-
-type TestdataInfo struct {
-	IsSubtask  bool
-	CalcMethod CalcMethod //计分方式
-	Subtasks   []SubtaskInfo
-}
-type DataInfo struct {
-	Fullscore float64
-	TestdataInfo
-	Pretest TestdataInfo
-	Extra   TestdataInfo
-	// 静态文件
-	Static     map[string]string //other properties of data
-	Hackable   bool
-	HackFields map[string]SubmLimit
-}
-
-type SubtaskInfo struct {
-	Id        int
-	Fullscore float64
-	Depend    []int
-	Field     map[string]string //other properties of subtasks
-	Tests     []TestInfo
-}
-
-type TestInfo struct {
-	Id    int
-	Field map[string]string //other properties of tests, i.e. in/output file path
-}
-
-type prob struct {
-	data *ProbData
-}
-
-// 将题目打包为一个文件（压缩包）
-func (r *prob) DumpFile(filename string) error {
-	return zipDir(r.data.dir, filename)
-}
-
-func (r *prob) tryReadFile(filename string) []byte {
-	ctnt, _ := os.ReadFile(path.Join(r.data.dir, filename))
-	return ctnt
-}
-
-func (r *prob) Stmt(lang string) []byte {
-	lang = GuessLang(lang)
-	logger.Printf("Get statement lang=%s", lang)
-	filename := r.data.Statement["s."+lang]
-	return r.tryReadFile(filename)
-}
-
-func (r *prob) Tutr(lang string) []byte {
-	lang = GuessLang(lang)
-	logger.Printf("Get tutorial lang=%s", lang)
-	filename := r.data.Statement["t."+lang]
-	return r.tryReadFile(filename)
-}
-
-func (r *prob) Assert(filename string) (*os.File, error) {
-	return os.Open(path.Join(r.data.dir, r.data.Statement[filename]))
-}
-
-// 获取提交格式的数据表格
-func (r *prob) SubmConf() SubmConf {
-	return r.data.Submission
-}
-
-func (r *prob) DataInfo() DataInfo {
-	var res = DataInfo{
-		TestdataInfo: r.data.ProbTestdata.Info(),
-		Pretest:      r.data.Pretest.Info(),
-		Extra:        r.data.Extra.Info(),
-		Fullscore:    r.data.Fullscore,
-		Static:       r.data.Static,
-		Hackable:     r.Hackable(),
-		HackFields:   r.data.HackFields,
-	}
-	return res
-}
-
-func (r *prob) Hackable() bool {
-	return r.data.Hackable()
-}
-
-var _ Problem = (*prob)(nil)
-
-// 加载一个题目文件夹
-func LoadDir(dir string) (Problem, error) {
-	data, err := LoadProbData(dir)
-	if err != nil {
-		return nil, err
-	}
-	return &prob{data: data}, nil
-}
-
-// 将打包的题目在空的文件夹下加载
-func LoadDump(filename string, dir string) (Problem, error) {
-	err := unzipSource(filename, dir)
-	if err != nil {
-		return nil, err
-	}
-	return LoadDir(dir)
-}
 
 var SupportLangs = []language.Tag{
 	language.Chinese,
@@ -149,8 +28,65 @@ func GuessLang(lang string) string {
 	return base.String()
 }
 
-func (r *prob) Data() *ProbData {
-	return r.data
+// 测试点得分的汇总方式
+//
+// 对于不开子任务的题目同样有效
+//
+// 通常的子任务模式：外 Msum 内 Mmin
+//
+// 传统模式：Msum 不开子任务
+type CalcMethod int
+
+const (
+	// default
+	Mmin CalcMethod = iota
+	Mmax
+	Msum
+)
+
+// Problem result
+type Result struct {
+	IsSubtask  bool
+	CalcMethod CalcMethod
+	Subtask    []SubtResult
+}
+
+func (r Result) Byte() []byte {
+	data, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+var briefTpl = template.Must(template.New("brief").Parse(`
+subtask: {{ .IsSubtask }}
+{{if .IsSubtask}}{{range .Subtask}}{{ .Subtaskid }} ({{ .Fullscore }}pts)
+{{range .Testcase}}{{ .Title }} {{ .Score }}pts {{ .Time }} {{ .Memory }}
+{{end}}{{end}}
+{{else}}{{range .Subtask}}{{range .Testcase}}{{ .Title }} {{ .Score }}pts {{ .Time }} {{ .Memory }}
+{{end}}{{end}}
+{{end}}
+`))
+
+func (r Result) Brief() string {
+	var b bytes.Buffer
+	if err := briefTpl.Execute(&b, r); err != nil {
+		panic(err)
+	}
+	return b.String()
+}
+
+// Subtask result
+type SubtResult struct {
+	Subtaskid string
+	Fullscore float64
+	Score     float64
+	Testcase  []workflow.Result
+}
+
+func (r SubtResult) IsFull() bool {
+	return r.Fullscore-r.Score < 1e-5
 }
 
 var logger = buflog.New("[problem] ")

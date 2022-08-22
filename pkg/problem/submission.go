@@ -118,11 +118,10 @@ func (r Submission) Download(dir string) (res workflow.InboundGroups) {
 		res[group] = make(map[string]data.FileStore)
 		for field, store := range gdata {
 			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field)
-			flex, err := data.FlexFromStore(store)
+			flex, err := data.NewFlexStore(filename, store)
 			if err != nil {
 				panic(err)
 			}
-			flex.ChangePath(filename)
 			res[group][field] = flex
 		}
 	}

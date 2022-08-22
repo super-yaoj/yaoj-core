@@ -11,7 +11,7 @@ import (
 )
 
 func TestFlex(t *testing.T) {
-	f := data.FlexWithPath("")
+	f := data.NewFlex(path.Join(t.TempDir(), "flex"), nil)
 	// content mode
 	f.Set([]byte("hello"))
 	if ctnt, err := f.Get(); err != nil || string(ctnt) != "hello" {

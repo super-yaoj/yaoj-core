@@ -126,18 +126,10 @@ func (r *Flex) DupFile(name string, mode os.FileMode) error {
 
 var _ FileStore = (*Flex)(nil)
 
+/*
 // flex store with filepath initialized (empty content)
 func FlexWithPath(name string) *Flex {
 	return &Flex{filepath: name}
-}
-
-// flex store with file initialized
-func FlexWithFile(name string) *Flex {
-	res := &Flex{
-		mode:     mFile,
-		filepath: name,
-	}
-	return res
 }
 
 func FlexWithData(data []byte) *Flex {
@@ -145,7 +137,9 @@ func FlexWithData(data []byte) *Flex {
 	res.Set(data)
 	return res
 }
+*/
 
+// 必须指定一个有效的文件路径，创建一个 flex
 func NewFlex(name string, data []byte) *Flex {
 	return &Flex{
 		mode:     mCtnt,
@@ -154,6 +148,25 @@ func NewFlex(name string, data []byte) *Flex {
 	}
 }
 
+// 必须指定一个有效的文件路径，创建一个 flex
+func NewFlexStore(name string, store Store) (*Flex, error) {
+	data, err := store.Get()
+	if err != nil {
+		return nil, err
+	}
+	return NewFlex(name, data), nil
+}
+
+// flex store with file initialized
+func NewFlexFile(name string) *Flex {
+	res := &Flex{
+		mode:     mFile,
+		filepath: name,
+	}
+	return res
+}
+
+/*
 func FlexFromStore(store Store) (*Flex, error) {
 	res := &Flex{}
 	data, err := store.Get()
@@ -166,3 +179,4 @@ func FlexFromStore(store Store) (*Flex, error) {
 	}
 	return res, nil
 }
+*/

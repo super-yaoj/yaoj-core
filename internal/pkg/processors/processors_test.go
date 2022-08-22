@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/k0kubun/pp"
+	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -105,19 +105,19 @@ func TestProcessors(t *testing.T) {
 		for _, testcase := range testcases {
 			t.Run(testcase.name, func(t *testing.T) {
 				// source
-				src := data.FlexWithPath("main.txt")
+				src := data.NewFlex("main.txt", nil)
 				src.Set([]byte(testcase.src))
 				// option
 				conf := processors.CompileConf{Lang: testcase.lang}
 
 				inputs := processor.Inbounds{
 					"source": src,
-					"option": data.FlexWithData(conf.Serialize()),
+					"option": data.NewFlex("tmp", conf.Serialize()),
 				}
 				outputs := processor.Outbounds{
-					"result":    data.FlexWithPath(testcase.exec),
-					"log":       data.FlexWithPath("main.log"),
-					"judgerlog": data.FlexWithPath("runtime.log"),
+					"result":    data.NewFlex(testcase.exec, nil),
+					"log":       data.NewFlex("main.log", nil),
+					"judgerlog": data.NewFlex("runtime.log", nil),
 				}
 				res := processors.CompilerAuto{}.Process(inputs, outputs)
 				if res.Code != processor.Ok {
@@ -164,14 +164,14 @@ func TestProcessors(t *testing.T) {
 		for _, testcase := range testcases {
 			t.Run(testcase.name, func(t *testing.T) {
 				inputs := processor.Inbounds{
-					"executable": data.FlexWithFile(testcase.exec),
-					"stdin":      data.FlexWithFile(testcase.input),
-					"conf":       data.FlexWithData(testcase.conf.Serialize()),
+					"executable": data.NewFlexFile(testcase.exec),
+					"stdin":      data.NewFlexFile(testcase.input),
+					"conf":       data.NewFlex("tmp", testcase.conf.Serialize()),
 				}
 				outputs := processor.Outbounds{
-					"stdout":    data.FlexWithPath("exec.out"),
-					"stderr":    data.FlexWithPath("exec.err"),
-					"judgerlog": data.FlexWithPath("runtime.log"),
+					"stdout":    data.NewFlex("exec.out", nil),
+					"stderr":    data.NewFlex("exec.err", nil),
+					"judgerlog": data.NewFlex("runtime.log", nil),
 				}
 				res := processors.RunnerAuto{}.Process(inputs, outputs)
 				if res.Code != processor.Ok {
@@ -187,12 +187,12 @@ func TestProcessors(t *testing.T) {
 	})
 	t.Run("CompilerTestlib", func(t *testing.T) {
 		inputs := processor.Inbounds{
-			"source": data.FlexWithData([]byte(checker_yesno_src)),
+			"source": data.NewFlex("tmp", []byte(checker_yesno_src)),
 		}
 		outputs := processor.Outbounds{
-			"result":    data.FlexWithPath("exec_checker"),
-			"log":       data.FlexWithPath("checker.log"),
-			"judgerlog": data.FlexWithPath("runtime.log"),
+			"result":    data.NewFlex("exec_checker", nil),
+			"log":       data.NewFlex("checker.log", nil),
+			"judgerlog": data.NewFlex("runtime.log", nil),
 		}
 
 		res := processors.CompilerTestlib{}.Process(inputs, outputs)
@@ -203,15 +203,15 @@ func TestProcessors(t *testing.T) {
 	})
 	t.Run("CheckerTestlib", func(t *testing.T) {
 		inputs := processor.Inbounds{
-			"checker": data.FlexWithFile("exec_checker"),
+			"checker": data.NewFlexFile("exec_checker"),
 			"input":   data.NewFlex("input", []byte("yes")),
 			"output":  data.NewFlex("output", []byte("yes")),
 			"answer":  data.NewFlex("answer", []byte("yes")),
 		}
 		outputs := processor.Outbounds{
-			"xmlreport": data.FlexWithPath("report.xml"),
-			"stderr":    data.FlexWithPath("checker.err"),
-			"judgerlog": data.FlexWithPath("runtime.log"),
+			"xmlreport": data.NewFlex("report.xml", nil),
+			"stderr":    data.NewFlex("checker.err", nil),
+			"judgerlog": data.NewFlex("runtime.log", nil),
 		}
 		res := processors.CheckerTestlib{}.Process(inputs, outputs)
 		if res.Code != processor.Ok {

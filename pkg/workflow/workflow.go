@@ -131,7 +131,7 @@ type ResultMeta struct {
 type Result struct {
 	ResultMeta
 	// a list of file content to display
-	File []ResultFileDisplay
+	File []ResultFile
 }
 
 // json content
@@ -143,7 +143,7 @@ func (r *Result) Byte() []byte {
 	return data
 }
 
-type ResultFileDisplay struct {
+type ResultFile struct {
 	Title   string
 	Content string
 }

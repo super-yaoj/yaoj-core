@@ -2,6 +2,7 @@ package problem
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -34,7 +35,7 @@ func zipDir(root string, dest string) error {
 		defer file.Close()
 
 		if pathname[:len(root)] != root {
-			return logger.Errorf("invalid path %s", pathname)
+			return fmt.Errorf("invalid path %s", pathname)
 		}
 		zippath := pathname[len(root)+1:]
 
@@ -42,7 +43,7 @@ func zipDir(root string, dest string) error {
 		// This snippet happens to work because I don't use
 		// absolute pathnames, but ensure your real-world code
 		// transforms pathname into a zip-root relative pathname.
-		logger.Printf("Create %#v\n", zippath)
+		fmt.Printf("Create %#v\n", zippath)
 		f, err := w.Create(zippath)
 		if err != nil {
 			return err
@@ -92,7 +93,7 @@ func unzipFile(f *zip.File, destination string) error {
 	// 4. Check if file paths are not vulnerable to Zip Slip
 	filePath := filepath.Join(destination, f.Name)
 	if !strings.HasPrefix(filePath, filepath.Clean(destination)+string(os.PathSeparator)) {
-		return logger.Errorf("invalid file path: %s", filePath)
+		return fmt.Errorf("invalid file path: %s", filePath)
 	}
 
 	// 5. Create directory tree

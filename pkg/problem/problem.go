@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"text/template"
 
-	"github.com/super-yaoj/yaoj-core/pkg/buflog"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 	"golang.org/x/text/language"
 )
@@ -46,9 +45,14 @@ const (
 
 // Problem result
 type Result struct {
-	IsSubtask  bool
-	CalcMethod CalcMethod
-	Subtask    []SubtResult
+	// 题目满分
+	Fullscore float64 `json:"fullscore"`
+	// 实际得分
+	Score float64 `json:"score"`
+	// Testcases 与 Subtasks 必有一个为 nil
+	Testcases []workflow.Result `json:"testcases"`
+	// Testcases 与 Subtasks 必有一个为 nil
+	Subtasks []SubtResult `json:"subtasks"`
 }
 
 func (r Result) Byte() []byte {
@@ -79,14 +83,12 @@ func (r Result) Brief() string {
 
 // Subtask result
 type SubtResult struct {
-	Subtaskid string
-	Fullscore float64
-	Score     float64
-	Testcase  []workflow.Result
+	Subtaskid string            `json:"id"`
+	Fullscore float64           `json:"fullscore"`
+	Score     float64           `json:"score"`
+	Testcases []workflow.Result `json:"testcases"`
 }
 
 func (r SubtResult) IsFull() bool {
 	return r.Fullscore-r.Score < 1e-5
 }
-
-var logger = buflog.New("[problem] ")

@@ -61,7 +61,7 @@ func TestData(t *testing.T) {
 	prob2.Statement.Range(func(field, name string) {
 		t.Fatalf("unknown field: %s, %s", field, name)
 	})
-	output_1, err := prob2.Data.Subtasks[0].Data[0].GetData("output")
+	output_1, err := prob2.Data.Subtasks[0].Testcases[0].GetData("output")
 	if err != nil {
 		t.Fatal(err)
 	}

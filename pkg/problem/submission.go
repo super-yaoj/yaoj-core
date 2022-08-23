@@ -35,7 +35,7 @@ func (r Submission) Set(field string, filename string) {
 //	name: 文件名（一般不带路径）
 //	reader：文件内容
 func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
-	logger.Printf("SetSource in group %s's %q naming %q", group, field, name)
+	// log.Printf("SetSource in group %s's %q naming %q", group, field, name)
 	if r[group] == nil {
 		r[group] = make(map[string]data.Store)
 	}

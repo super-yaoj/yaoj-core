@@ -5,7 +5,9 @@ import (
 	"os"
 	"path"
 
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
 // 依赖文件夹的以文件相对路径的形式存储字段值
@@ -60,6 +62,15 @@ func (r *DirRecord) Range(visitor func(field string, name string)) {
 	}
 }
 
+// 转化为读入数据
+func (r *DirRecord) InboundGroup() workflow.InboundGroup {
+	res := workflow.InboundGroup{}
+	r.Range(func(field, name string) {
+		res[field] = data.NewFlexFile(name)
+	})
+	return res
+}
+
 // create dir if necessary
 //
 // dir: 关于题目路径的相对文件夹
@@ -83,13 +94,13 @@ type SubtaskData struct {
 	// 该子任务的分数
 	Fullscore float64 `json:"fullscore"`
 	// 测试点数据
-	Data []*TestcaseData `json:"data"`
+	Testcases []*TestcaseData `json:"data"`
 }
 
 func (r *SubtaskData) NewTestcase() *TestcaseData {
-	tdir := path.Join(r.Dir, fmt.Sprint(len(r.Data)))
+	tdir := path.Join(r.Dir, fmt.Sprint(len(r.Testcases)))
 	res := (*TestcaseData)(r.prob.newDirRecord(tdir))
-	r.Data = append(r.Data, res)
+	r.Testcases = append(r.Testcases, res)
 	return res
 }
 
@@ -124,7 +135,7 @@ func (r *TestdataGroup) initProb(prob *Data) {
 	}
 	for _, sd := range r.Subtasks {
 		sd.prob = prob
-		for _, td := range sd.Data {
+		for _, td := range sd.Testcases {
 			td.prob = prob
 		}
 	}

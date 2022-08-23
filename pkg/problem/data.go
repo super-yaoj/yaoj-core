@@ -2,6 +2,7 @@ package problem
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"path"
 
@@ -105,7 +106,7 @@ func (r *Data) initProb() {
 
 // remove problem (dir)
 func (r *Data) Finalize() error {
-	logger.Printf("finalize %q", r.dir)
+	log.Printf("finalize %q", r.dir)
 	return os.RemoveAll(r.dir)
 }
 

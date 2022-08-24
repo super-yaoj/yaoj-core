@@ -73,10 +73,6 @@ var output = `628`
 func TestRtWorkflow(t *testing.T) {
 	dir := t.TempDir()
 
-	wk, err := workflowruntime.New(&preset.Traditional, dir, 100, log.NewTerminal())
-	if err != nil {
-		t.Fatal(err)
-	}
 	inbounds := workflow.InboundGroups{
 		workflow.Gstatic: make(map[string]data.FileStore),
 		workflow.Gtests:  make(map[string]data.FileStore),
@@ -98,7 +94,27 @@ func TestRtWorkflow(t *testing.T) {
 	inbounds[workflow.Gtests]["input"] = data.NewFlex(path.Join(dir, "_input"), []byte(input))
 	inbounds[workflow.Gtests]["output"] = data.NewFlex(path.Join(dir, "_output"), []byte(output))
 
+	cache, err := workflowruntime.NewCache(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wk, err := workflowruntime.New(&preset.Traditional, dir, 100, log.NewTerminal())
+	if err != nil {
+		t.Fatal(err)
+	}
+	wk.UseCache(cache)
 	err = wk.Run(inbounds, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wk2, err := workflowruntime.New(&preset.Traditional, dir, 100, log.NewTerminal())
+	if err != nil {
+		t.Fatal(err)
+	}
+	wk2.UseCache(cache)
+	err = wk2.Run(inbounds, false)
 	if err != nil {
 		t.Fatal(err)
 	}

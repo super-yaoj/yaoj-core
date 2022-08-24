@@ -42,21 +42,28 @@ type RtNode struct {
 //
 // should be invoked after all inputs getting ready
 //
-// 怎么处理哈希？不用哈希文件名了
+// 算哈希的时候不考虑 nil input 的情况
 func (r *RtNode) Hash() SHA {
 	if r.hash == nil {
 		hash := newShaHash()
-		for _, store := range r.Input {
-			data, err := store.Get()
-			if err == nil {
-				hash.Write(data)
+		for _, name := range processor.InputLabel(r.ProcName) {
+			store := r.Input[name]
+			if store == nil {
+				r.lg.WithField("input", name).Warn("nil input")
 			} else {
-				r.lg.WithError(err).Warn("error getting store")
+				data, err := store.Get()
+				if err == nil {
+					hash.Write(data)
+				} else {
+					r.lg.WithError(err).Warn("error getting store")
+				}
 			}
 		}
 		hash.WriteString(r.ProcName)
-		*r.hash = hash.SHA()
+		value := hash.SHA()
+		r.hash = &value
 	}
+	r.lg.Debugf("hash: %s", r.hash.String())
 	return *r.hash
 }
 

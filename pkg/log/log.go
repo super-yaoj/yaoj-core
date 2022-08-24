@@ -2,25 +2,23 @@
 package log
 
 import (
-	"context"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
 
-// context key
-type key int
+type Entry = logrus.Entry
 
-// context log entry key
-const Kentry key = 0
+type Fields = logrus.Fields
 
-func MustCtxLogger(ctx context.Context) (logger *logrus.Entry) {
-	logger = ctx.Value(Kentry).(*logrus.Entry)
-	if logger == nil {
-		panic("context without logger")
-	}
-	return
-}
-
-func CtxWithLog(ctx context.Context, logger *logrus.Entry) context.Context {
-	return context.WithValue(ctx, Kentry, logger)
+// log to terminal
+func NewTerminal() *Entry {
+	return logrus.NewEntry(&logrus.Logger{
+		Out: os.Stderr,
+		Formatter: &logrus.TextFormatter{
+			ForceColors: true,
+		},
+		Hooks: make(logrus.LevelHooks),
+		Level: logrus.TraceLevel,
+	})
 }

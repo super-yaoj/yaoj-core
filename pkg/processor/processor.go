@@ -66,6 +66,10 @@ func (r *Result) Deserialize(data []byte) error {
 	return err
 }
 
+func (r *Result) Ok() bool {
+	return r.Code == Ok
+}
+
 func init() {
 	gob.Register(Result{})
 }

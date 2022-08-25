@@ -20,6 +20,9 @@ type Data struct {
 	// 该题目所有测试点运行的 workflow
 	Workflow *workflow.Workflow `json:"workflow"`
 
+	// get analyzer by manager
+	AnalyzerName string
+
 	// pretest 常用于样例评测
 	Pretest *TestdataGroup `json:"pretest"`
 	// 额外数据例如 hack 数据

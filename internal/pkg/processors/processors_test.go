@@ -105,19 +105,19 @@ func TestProcessors(t *testing.T) {
 		for _, testcase := range testcases {
 			t.Run(testcase.name, func(t *testing.T) {
 				// source
-				src := data.NewFlex("main.txt", nil)
+				src := data.NewFile("main.txt", nil)
 				src.Set([]byte(testcase.src))
 				// option
 				conf := processors.CompileConf{Lang: testcase.lang}
 
 				inputs := processor.Inbounds{
 					"source": src,
-					"option": data.NewFlex("tmp", conf.Serialize()),
+					"option": data.NewFile("tmp", conf.Serialize()),
 				}
 				outputs := processor.Outbounds{
-					"result":    data.NewFlex(testcase.exec, nil),
-					"log":       data.NewFlex("main.log", nil),
-					"judgerlog": data.NewFlex("runtime.log", nil),
+					"result":    data.NewFile(testcase.exec, nil),
+					"log":       data.NewFile("main.log", nil),
+					"judgerlog": data.NewFile("runtime.log", nil),
 				}
 				res := processors.CompilerAuto{}.Process(inputs, outputs)
 				if res.Code != processor.Ok {
@@ -164,14 +164,14 @@ func TestProcessors(t *testing.T) {
 		for _, testcase := range testcases {
 			t.Run(testcase.name, func(t *testing.T) {
 				inputs := processor.Inbounds{
-					"executable": data.NewFlexFile(testcase.exec),
-					"stdin":      data.NewFlexFile(testcase.input),
-					"conf":       data.NewFlex("tmp", testcase.conf.Serialize()),
+					"executable": data.NewFileFile(testcase.exec),
+					"stdin":      data.NewFileFile(testcase.input),
+					"conf":       data.NewFile("tmp", testcase.conf.Serialize()),
 				}
 				outputs := processor.Outbounds{
-					"stdout":    data.NewFlex("exec.out", nil),
-					"stderr":    data.NewFlex("exec.err", nil),
-					"judgerlog": data.NewFlex("runtime.log", nil),
+					"stdout":    data.NewFile("exec.out", nil),
+					"stderr":    data.NewFile("exec.err", nil),
+					"judgerlog": data.NewFile("runtime.log", nil),
 				}
 				res := processors.RunnerAuto{}.Process(inputs, outputs)
 				if res.Code != processor.Ok {
@@ -187,12 +187,12 @@ func TestProcessors(t *testing.T) {
 	})
 	t.Run("CompilerTestlib", func(t *testing.T) {
 		inputs := processor.Inbounds{
-			"source": data.NewFlex("tmp", []byte(checker_yesno_src)),
+			"source": data.NewFile("tmp", []byte(checker_yesno_src)),
 		}
 		outputs := processor.Outbounds{
-			"result":    data.NewFlex("exec_checker", nil),
-			"log":       data.NewFlex("checker.log", nil),
-			"judgerlog": data.NewFlex("runtime.log", nil),
+			"result":    data.NewFile("exec_checker", nil),
+			"log":       data.NewFile("checker.log", nil),
+			"judgerlog": data.NewFile("runtime.log", nil),
 		}
 
 		res := processors.CompilerTestlib{}.Process(inputs, outputs)
@@ -203,15 +203,15 @@ func TestProcessors(t *testing.T) {
 	})
 	t.Run("CheckerTestlib", func(t *testing.T) {
 		inputs := processor.Inbounds{
-			"checker": data.NewFlexFile("exec_checker"),
-			"input":   data.NewFlex("input", []byte("yes")),
-			"output":  data.NewFlex("output", []byte("yes")),
-			"answer":  data.NewFlex("answer", []byte("yes")),
+			"checker": data.NewFileFile("exec_checker"),
+			"input":   data.NewFile("input", []byte("yes")),
+			"output":  data.NewFile("output", []byte("yes")),
+			"answer":  data.NewFile("answer", []byte("yes")),
 		}
 		outputs := processor.Outbounds{
-			"xmlreport": data.NewFlex("report.xml", nil),
-			"stderr":    data.NewFlex("checker.err", nil),
-			"judgerlog": data.NewFlex("runtime.log", nil),
+			"xmlreport": data.NewFile("report.xml", nil),
+			"stderr":    data.NewFile("checker.err", nil),
+			"judgerlog": data.NewFile("runtime.log", nil),
 		}
 		res := processors.CheckerTestlib{}.Process(inputs, outputs)
 		if res.Code != processor.Ok {

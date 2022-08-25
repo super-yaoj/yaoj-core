@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
@@ -95,7 +95,8 @@ func Judge(options ...OptionProvider) (*Result, error) {
 		v(&option)
 	}
 
-	logger.Print(option.Argument)
+	logger := log.NewTerminal().WithField("runner", option.Runner)
+	logger.Debug(option.Argument)
 
 	if err := logSet(option.Logfile, option.LogLevel, option.LogColor); err != nil {
 		return nil, err
@@ -223,5 +224,3 @@ func WithLog(file string, level int, color bool) OptionProvider {
 		o.LogColor = color
 	}
 }
-
-var logger = buflog.New(buflog.Cyan + "[judger] " + buflog.Reset)

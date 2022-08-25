@@ -80,7 +80,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 			verArg = "--std=c++2a"
 		}
 
-		logger.Printf("auto compile source lang ver: %s", verArg)
+		// logger.Printf("auto compile source lang ver: %s", verArg)
 
 		args := []string{
 			"/dev/null", "/dev/null", outputs["log"].Path(),
@@ -91,7 +91,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		}
 		argv = args
 	case utils.Lpython, utils.Lpython3: // 目前只编译 python3
-		logger.Printf("detect python source")
+		// logger.Printf("detect python source")
 		c_src := utils.RandomString(10) + ".c"
 		py_src := utils.RandomString(10) + ".py"
 		// compile source to c file
@@ -109,7 +109,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 			return SysErrRes(err)
 		}
 		if res.Code != judger.Ok { // cython 编译出错
-			logger.Printf("cython compile error!")
+			// logger.Printf("cython compile error!")
 			res := res.ProcResult()
 			res.Msg = "cython compile: " + res.Msg
 			return res

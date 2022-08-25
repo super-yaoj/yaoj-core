@@ -105,9 +105,7 @@ func TestRtProblem(t *testing.T) {
 		{50, 6},
 	}}
 	for _, v := range subtaskdata {
-		sub := prob.Data.NewSubtask()
-		sub.Method = problem.Mmin
-		sub.Fullscore = prob.Fullscore / float64(len(subtaskdata))
+		sub := prob.Data.NewSubtask(prob.Fullscore/float64(len(subtaskdata)), problem.Mmin)
 		for _, v2 := range v {
 			test := sub.NewTestcase()
 			test.SetData("input", []byte(fmt.Sprint(v2[0], " ", v2[1])))

@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrInvalidSet = errors.New("invalid test set")
+	ErrInvalidSet      = errors.New("invalid test set")
+	ErrUnknownAnalyzer = errors.New("unknown analyzer")
 )
 
 type Error struct {

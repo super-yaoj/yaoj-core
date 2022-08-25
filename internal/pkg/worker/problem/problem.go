@@ -123,7 +123,11 @@ func (r *RtProblem) RunTestcases(testcases []*problem.TestcaseData,
 			})
 		} else {
 			inbounds[workflow.Gtests] = testcase.InboundGroup()
-			wk, err := workflowruntime.New(r.Workflow, workdir, fullscore, analyzers.DefaultAnalyzer{}, r.lg)
+			analyzer := analyzers.Get(r.AnalyzerName)
+			if analyzer == nil {
+				return nil, &DataError{r.AnalyzerName, ErrUnknownAnalyzer}
+			}
+			wk, err := workflowruntime.New(r.Workflow, workdir, fullscore, analyzer, r.lg)
 			if err != nil {
 				return nil, err
 			}

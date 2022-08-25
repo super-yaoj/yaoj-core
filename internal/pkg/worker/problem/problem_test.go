@@ -75,6 +75,7 @@ func TestRtProblem(t *testing.T) {
 	}
 	prob.Workflow = &preset.Traditional
 	prob.Fullscore = 100
+	prob.AnalyzerName = "traditional"
 
 	// setup pretest
 	prob.Pretest.InitTestcases()

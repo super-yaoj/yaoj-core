@@ -100,17 +100,20 @@ func TestRtWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wk, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.DefaultAnalyzer{}, log.NewTerminal())
+	wk, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.Traditional{}, log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}
 	wk.UseCache(cache)
-	_, err = wk.Run(inbounds, false)
+	res, err := wk.Run(inbounds, false)
 	if err != nil {
 		t.Fatal(err)
 	}
+	if res.Title != "Accepted" {
+		t.Fatal("invalid result", res)
+	}
 
-	wk2, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.DefaultAnalyzer{}, log.NewTerminal())
+	wk2, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.Traditional{}, log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}

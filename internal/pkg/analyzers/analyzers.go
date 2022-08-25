@@ -8,11 +8,27 @@ import (
 
 	"github.com/k0kubun/pp/v3"
 	workflowruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 	"golang.org/x/text/encoding/charmap"
 )
+
+type Analyzer = workflowruntime.Analyzer
+
+// Try to display content of a text file with max-length limitation.
+func show(store data.FileStore, title string, length int) workflow.ResultFile {
+	bytes, _ := store.Get()
+	content := string(bytes)
+	if len(content) > length {
+		content = content[:length]
+	}
+	return workflow.ResultFile{
+		Title:   title,
+		Content: content,
+	}
+}
 
 // DefaultAnalyzer 会首先分析哪些结点的信息与用户（Gsubm）有关，以此判定
 // 是否出现系统错误。
@@ -195,13 +211,13 @@ func (r DefaultAnalyzer) Analyze(w *workflowruntime.RtWorkflow) workflow.Result 
 func autoFileDisplay(node *workflowruntime.RtNode) []workflow.ResultFile {
 	switch node.ProcName {
 	case "checker:testlib":
-		return []workflow.ResultFile{workflowruntime.FileDisplay(node.Input["answer"], "answer", 5000)}
+		return []workflow.ResultFile{show(node.Input["answer"], "answer", 5000)}
 	case "compiler:testlib", "compiler:auto":
-		return []workflow.ResultFile{workflowruntime.FileDisplay(node.Output["log"], "compile log", 5000)}
+		return []workflow.ResultFile{show(node.Output["log"], "compile log", 5000)}
 	case "runner:auto":
 		return []workflow.ResultFile{
-			workflowruntime.FileDisplay(node.Output["stdout"], "stdout", 5000),
-			workflowruntime.FileDisplay(node.Output["stderr"], "stderr", 5000),
+			show(node.Output["stdout"], "stdout", 5000),
+			show(node.Output["stderr"], "stderr", 5000),
 		}
 	default:
 		return nil

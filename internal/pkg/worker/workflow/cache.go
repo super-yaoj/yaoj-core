@@ -70,13 +70,14 @@ func (r *GlobalCache) Assign(node *RtNode) error {
 		return err
 	}
 	node.Result = &processor.Result{}
-	err = node.Result.Unserialize(res_ctnt)
+	err = node.Result.Deserialize(res_ctnt)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// create dir if necessary
 func NewCache(dir string) (*GlobalCache, error) {
 	err := os.MkdirAll(dir, 0750)
 	if err != nil {

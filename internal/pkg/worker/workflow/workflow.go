@@ -113,12 +113,14 @@ type RtWorkflow struct {
 	// node names sorted topologically
 	sortedNames []string
 
+	analyzer Analyzer
+
 	// logger
 	lg *log.Entry
 }
 
 // create a new runtime workflow working in dir
-func New(wk *Workflow, dir string, fullscore float64, logger *log.Entry) (*RtWorkflow, error) {
+func New(wk *Workflow, dir string, fullscore float64, analyzer Analyzer, logger *log.Entry) (*RtWorkflow, error) {
 	logger = logger.WithField("workflow", dir)
 
 	res := &RtWorkflow{
@@ -127,6 +129,7 @@ func New(wk *Workflow, dir string, fullscore float64, logger *log.Entry) (*RtWor
 		Fullscore: fullscore,
 		dir:       dir,
 		lg:        logger,
+		analyzer:  analyzer,
 	}
 	for name, node := range wk.Node {
 		res.sortedNames = append(res.sortedNames, name)
@@ -162,7 +165,7 @@ func (r *RtWorkflow) UseCache(cachers ...RtNodeCache) {
 //
 // dismiss_incomplete: 如果是在 hack 评测时跑 std，那么我们允许不完整的读入
 // 在此模式下如果一个 processor 的读入不完整，那么它就不会被执行（即 result 是 nil）
-func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete bool) error {
+func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete bool) (*workflow.Result, error) {
 	// bind inbound to workflow
 	for gname, group := range r.Inbound {
 		if group == nil {
@@ -188,7 +191,7 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 
 	previousWd, err := os.Getwd()
 	if err != nil {
-		return &Error{"getwd", err}
+		return nil, &Error{"getwd", err}
 	}
 	// go back after testing
 	defer os.Chdir(previousWd)
@@ -196,7 +199,7 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 	// change working dir
 	err = os.Chdir(r.dir)
 	if err != nil {
-		return &Error{"chdir", err}
+		return nil, &Error{"chdir", err}
 	}
 	r.lg.Debug("change working dir")
 
@@ -206,14 +209,15 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 			r.lg.WithField("node", name).Debug("dismiss incomplete input")
 			continue
 		} else if err != nil {
-			return &DataError{"node: " + name, err}
+			return nil, &DataError{"node: " + name, err}
 		}
 		for _, edge := range r.EdgeFrom(name) {
 			r.RtNodes[edge.To.Name].Input[edge.To.Label] = r.RtNodes[edge.From.Name].Output[edge.From.Label]
 		}
 	}
 
-	return nil
+	res := r.analyzer.Analyze(r)
+	return &res, nil
 }
 
 // 总结信息统计结果

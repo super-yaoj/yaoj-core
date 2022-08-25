@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	problemruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
@@ -79,6 +78,8 @@ func TestRtProblem(t *testing.T) {
 
 	// setup pretest
 	prob.Pretest.InitTestcases()
+	prob.Pretest.Fullscore = 100
+	prob.Pretest.Method = problem.Msum
 	testdata := [][2]int{
 		{1, 2},
 		{3, 4},
@@ -88,6 +89,30 @@ func TestRtProblem(t *testing.T) {
 		tc := prob.Pretest.NewTestcase()
 		tc.SetData("input", []byte(fmt.Sprint(v[0], " ", v[1])))
 		tc.SetData("output", []byte(fmt.Sprint(v[0]+v[1])))
+	}
+
+	// setup Data
+	prob.Data.InitSubtasks()
+	prob.Data.Fullscore = 100
+	prob.Data.Method = problem.Msum
+	subtaskdata := [][][2]int{{
+		{1, 2},
+		{3, 4},
+		{5, 6},
+	}, {
+		{10, 2},
+		{30, 4},
+		{50, 6},
+	}}
+	for _, v := range subtaskdata {
+		sub := prob.Data.NewSubtask()
+		sub.Method = problem.Mmin
+		sub.Fullscore = prob.Fullscore / float64(len(subtaskdata))
+		for _, v2 := range v {
+			test := sub.NewTestcase()
+			test.SetData("input", []byte(fmt.Sprint(v2[0], " ", v2[1])))
+			test.SetData("output", []byte(fmt.Sprint(v2[0]+v2[1])))
+		}
 	}
 
 	// setup static
@@ -118,5 +143,17 @@ func TestRtProblem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pp.Println(res)
+	if res.Score != res.Fullscore {
+		t.Fatal("invalid result", res)
+	}
+	// pp.Println(res)
+
+	res, err = rtprob.RunTestset(rtprob.Data.Data, submission)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Score != res.Fullscore {
+		t.Fatal("invalid result", res)
+	}
+	// pp.Println(res)
 }

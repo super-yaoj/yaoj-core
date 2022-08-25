@@ -21,27 +21,23 @@ import (
 // 考虑到对 hack 的支持，一个提交可以不止包含 Gsubm 域的内容
 type Submission map[workflow.Groupname]map[string]data.Store
 
-// 根据文件路径名加入提交文件
-func (r Submission) Set(field string, filename string) {
-	file, _ := os.Open(filename)
-	r.SetSource(workflow.Gsubm, field, filename, file)
-	file.Close()
-}
-
 // 加入文件（例如custom test就可以手动加test）
 //
 //	group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
 //	field: 字段名
-//	name: 文件名（一般不带路径）
-//	reader：文件内容
-func (r Submission) SetSource(group workflow.Groupname, field string, name string, reader io.Reader) {
+//	reader: 文件内容
+func (r Submission) SetSource(group workflow.Groupname, field string, reader io.Reader) {
 	// log.Printf("SetSource in group %s's %q naming %q", group, field, name)
-	if r[group] == nil {
-		r[group] = make(map[string]data.Store)
-	}
 	ctnt, err := io.ReadAll(reader)
 	if err != nil {
 		panic(err)
+	}
+	r.SetData(group, field, ctnt)
+}
+
+func (r Submission) SetData(group workflow.Groupname, field string, ctnt []byte) {
+	if r[group] == nil {
+		r[group] = make(map[string]data.Store)
 	}
 	r[group][field] = data.NewInMemory(ctnt)
 }
@@ -118,11 +114,11 @@ func (r Submission) Download(dir string) (res workflow.InboundGroups) {
 		res[group] = make(map[string]data.FileStore)
 		for field, store := range gdata {
 			filename := path.Join(dir, prefix+"-"+string(group)+"-"+field)
-			flex, err := data.NewFlexStore(filename, store)
+			File, err := data.NewFileStore(filename, store)
 			if err != nil {
 				panic(err)
 			}
-			res[group][field] = flex
+			res[group][field] = File
 		}
 	}
 	return res
@@ -166,7 +162,7 @@ func loadSubmOpener(zipfile interface {
 	for group, data := range pathmap {
 		for field, name := range *data {
 			file, _ := zipfile.Open(name)
-			res.SetSource(group, field, name, file)
+			res.SetSource(group, field, file)
 			file.Close()
 		}
 	}

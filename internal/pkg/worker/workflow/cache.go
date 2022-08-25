@@ -63,7 +63,7 @@ func (r *GlobalCache) Assign(node *RtNode) error {
 	key := node.Hash().String()
 	node.Output = make(processor.Outbounds)
 	for _, field := range processor.OutputLabel(node.ProcName) {
-		node.Output[field] = data.NewFlexFile(path.Join(r.dir, key+field))
+		node.Output[field] = data.NewFileFile(path.Join(r.dir, key+field))
 	}
 	res_ctnt, err := os.ReadFile(path.Join(r.dir, key+".result"))
 	if err != nil {

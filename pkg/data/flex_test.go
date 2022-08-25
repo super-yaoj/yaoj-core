@@ -10,8 +10,8 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 )
 
-func TestFlex(t *testing.T) {
-	f := data.NewFlex(path.Join(t.TempDir(), "flex"), nil)
+func TestFile(t *testing.T) {
+	f := data.NewFile(path.Join(t.TempDir(), "File"), nil)
 	// content mode
 	f.Set([]byte("hello"))
 	if ctnt, err := f.Get(); err != nil || string(ctnt) != "hello" {
@@ -20,7 +20,7 @@ func TestFlex(t *testing.T) {
 	if err := f.Set([]byte("#!/bin/bash\nls .")); err != nil {
 		t.Fatal(err)
 	}
-	if err := f.ChangePath(path.Join(t.TempDir(), "flex")); err != nil {
+	if err := f.ChangePath(path.Join(t.TempDir(), "File")); err != nil {
 		t.Fatal(err)
 	}
 	// file mode
@@ -30,8 +30,8 @@ func TestFlex(t *testing.T) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
-	f.ChangePath(path.Join(t.TempDir(), "flex_changed"))
-	if !strings.Contains(f.Path(), "flex_changed") {
+	f.ChangePath(path.Join(t.TempDir(), "File_changed"))
+	if !strings.Contains(f.Path(), "File_changed") {
 		t.Fatal("change path failed", f.Path())
 	}
 	if err := f.Set([]byte("#!/bin/bash\necho hello")); err != nil {

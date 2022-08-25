@@ -19,13 +19,9 @@ type Processor interface {
 	// Report human-readable label for each input and output.
 	// Labels are used in workflow (especially builder).
 	Label() (inputlabel []string, outputlabel []string)
-	// Given a fixed number of input files, generate output to  corresponding files
-	// with execution result. It's ok if result == nil, which means success.
-	// Run(inputs []string, outputs []string) (result *Result)
 
 	// Given a fixed number of input files, generate output to  corresponding files
-	// with execution result. It's ok if result == nil, which means success.
-	// Inputs are considered unordered.
+	// with execution result. Inputs are considered unordered.
 	Process(inputs Inbounds, outputs Outbounds) (result *Result)
 }
 
@@ -64,7 +60,7 @@ func (r Result) Serialize() []byte {
 	return b.Bytes()[:]
 }
 
-func (r *Result) Unserialize(data []byte) error {
+func (r *Result) Deserialize(data []byte) error {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(r)
 	return err

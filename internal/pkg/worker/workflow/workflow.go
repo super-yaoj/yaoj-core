@@ -88,7 +88,7 @@ func (r *RtNode) run(name string, cachers []RtNodeCache) error {
 		r.lg.Info("run node without cache")
 		// init output stores
 		for _, label := range processor.OutputLabel(r.ProcName) {
-			r.Output[label] = data.NewFlex(utils.RandomString(10), nil)
+			r.Output[label] = data.NewFile(utils.RandomString(10), nil)
 		}
 		r.Result = processors.Get(r.ProcName).Process(r.Input, r.Output)
 	}

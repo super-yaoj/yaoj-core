@@ -114,7 +114,7 @@ func (r *Data) Hackable() bool {
 	return r.HackFields != nil && r.HackIOMap != nil
 }
 
-// create a new problem in an empty dir
+// create a new problem in an empty dir. default fullscore: 100
 //
 // create the dir if necessary
 func New(dir string) (*Data, error) {

@@ -19,6 +19,6 @@ func NewTerminal() *Entry {
 			ForceColors: true,
 		},
 		Hooks: make(logrus.LevelHooks),
-		Level: logrus.TraceLevel,
+		Level: logrus.DebugLevel,
 	})
 }

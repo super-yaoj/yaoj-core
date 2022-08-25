@@ -83,13 +83,13 @@ func TestWorker(t *testing.T) {
 			workflow.Gtests:  make(map[string]data.FileStore),
 			workflow.Gsubm:   make(map[string]data.FileStore),
 		}
-		inbounds[workflow.Gsubm]["source"] = data.NewFlex(path.Join(dir, "_main.cpp"), []byte(main))
-		inbounds[workflow.Gsubm]["option"] = data.NewFlex(path.Join(dir, "_cpl"), (&processors.CompileConf{
+		inbounds[workflow.Gsubm]["source"] = data.NewFile(path.Join(dir, "_main.cpp"), []byte(main))
+		inbounds[workflow.Gsubm]["option"] = data.NewFile(path.Join(dir, "_cpl"), (&processors.CompileConf{
 			Lang: utils.Lcpp11,
 		}).Serialize())
 
-		inbounds[workflow.Gstatic]["checker"] = data.NewFlex(path.Join(dir, "_chk.cpp"), []byte(ncmp))
-		inbounds[workflow.Gstatic]["runner_config"] = data.NewFlex(path.Join(dir, "_runconf"), (&processors.RunConf{
+		inbounds[workflow.Gstatic]["checker"] = data.NewFile(path.Join(dir, "_chk.cpp"), []byte(ncmp))
+		inbounds[workflow.Gstatic]["runner_config"] = data.NewFile(path.Join(dir, "_runconf"), (&processors.RunConf{
 			RealTime: 60 * 1000,
 			CpuTime:  1000,
 			RealMem:  512 * 1024 * 1024,
@@ -97,8 +97,8 @@ func TestWorker(t *testing.T) {
 			Output:   64 * 1024 * 1024,
 			Fileno:   5,
 		}).Serialize())
-		inbounds[workflow.Gtests]["input"] = data.NewFlex(path.Join(dir, "_input"), []byte(input))
-		inbounds[workflow.Gtests]["output"] = data.NewFlex(path.Join(dir, "_output"), []byte(output))
+		inbounds[workflow.Gtests]["input"] = data.NewFile(path.Join(dir, "_input"), []byte(input))
+		inbounds[workflow.Gtests]["output"] = data.NewFile(path.Join(dir, "_output"), []byte(output))
 
 		cache, err := workflowruntime.NewCache(t.TempDir())
 		if err != nil {

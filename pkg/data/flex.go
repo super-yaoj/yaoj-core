@@ -5,88 +5,39 @@ import (
 	"os"
 )
 
-type flexStoreMode int
-
-const (
-	mCtnt flexStoreMode = 0
-	mFile flexStoreMode = 1
-)
-
-// 根据调用的方法灵活变化存储方式
-//
-// 可直接声明无需初始化（最好不要）
-//
-// 在文件模式中我们存储的是文件路径而非 os.File 指针，因此人为地改动文件内容是可以的
+// 存储的是文件路径而非 os.File 指针，因此人为地改动文件内容是可以的
 //
 // TODO: 规范的错误处理、test
-type Flex struct {
-	// default mCtnt
-	mode flexStoreMode
+type File struct {
 	// if mFile
 	filepath string
-	// if mCtnt
-	content []byte
 }
 
-// turn to file mode (if not)
-func (r *Flex) ToFile() error {
-	if r.mode == mFile {
-		return nil
-	}
-	err := os.WriteFile(r.filepath, r.content, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	r.mode = mFile
-	r.content = nil
-	return nil
-}
-
-func (r *Flex) Path() string {
-	if err := r.ToFile(); err != nil {
-		panic(err)
-	}
+func (r *File) Path() string {
 	return r.filepath
 }
 
-func (r *Flex) File() (*os.File, error) {
-	if err := r.ToFile(); err != nil {
-		panic(err)
-	}
+func (r *File) File() (*os.File, error) {
 	return os.Open(r.filepath)
 }
 
-func (r *Flex) SetMode(mode os.FileMode) error {
-	if err := r.ToFile(); err != nil {
-		panic(err)
-	}
+func (r *File) SetMode(mode os.FileMode) error {
 	return os.Chmod(r.filepath, mode)
 }
 
-func (r *Flex) Get() (data []byte, err error) {
-	if r.mode == mFile {
-		return os.ReadFile(r.filepath)
-	} else {
-		return r.content, nil
-	}
+func (r *File) Get() (data []byte, err error) {
+	return os.ReadFile(r.filepath)
 }
 
-func (r *Flex) Set(data []byte) error {
-	if r.mode == mFile {
-		return os.WriteFile(r.filepath, data, os.ModePerm)
-	} else {
-		r.content = data
-		return nil
-	}
+func (r *File) Set(data []byte) error {
+	return os.WriteFile(r.filepath, data, os.ModePerm)
 }
 
 // change the filepath of store
 //
 // this does not remove the origin file
-func (r *Flex) ChangePath(name string) error {
-	if r.mode == mCtnt {
-		r.filepath = name
-	} else if r.filepath != name {
+func (r *File) ChangePath(name string) error {
+	if r.filepath != name {
 		src, err := r.File()
 		if err != nil {
 			return err
@@ -116,7 +67,7 @@ func (r *Flex) ChangePath(name string) error {
 	return nil
 }
 
-func (r *Flex) DupFile(name string, mode os.FileMode) error {
+func (r *File) DupFile(name string, mode os.FileMode) error {
 	data, err := r.Get()
 	if err != nil {
 		return err
@@ -124,51 +75,40 @@ func (r *Flex) DupFile(name string, mode os.FileMode) error {
 	return os.WriteFile(name, data, mode)
 }
 
-var _ FileStore = (*Flex)(nil)
+var _ FileStore = (*File)(nil)
 
-/*
-// flex store with filepath initialized (empty content)
-func FlexWithPath(name string) *Flex {
-	return &Flex{filepath: name}
-}
-
-func FlexWithData(data []byte) *Flex {
-	res := &Flex{}
-	res.Set(data)
+// 必须指定一个有效的文件路径，创建一个 File
+func NewFile(name string, data []byte) *File {
+	res := &File{
+		filepath: name,
+	}
+	err := res.Set(data)
+	if err != nil {
+		panic(err)
+	}
 	return res
 }
-*/
 
-// 必须指定一个有效的文件路径，创建一个 flex
-func NewFlex(name string, data []byte) *Flex {
-	return &Flex{
-		mode:     mCtnt,
-		filepath: name,
-		content:  data,
-	}
-}
-
-// 必须指定一个有效的文件路径，创建一个 flex
-func NewFlexStore(name string, store Store) (*Flex, error) {
+// 必须指定一个有效的文件路径，创建一个 File
+func NewFileStore(name string, store Store) (*File, error) {
 	data, err := store.Get()
 	if err != nil {
 		return nil, err
 	}
-	return NewFlex(name, data), nil
+	return NewFile(name, data), nil
 }
 
-// flex store with file initialized
-func NewFlexFile(name string) *Flex {
-	res := &Flex{
-		mode:     mFile,
+// File store with file initialized
+func NewFileFile(name string) *File {
+	res := &File{
 		filepath: name,
 	}
 	return res
 }
 
 /*
-func FlexFromStore(store Store) (*Flex, error) {
-	res := &Flex{}
+func FileFromStore(store Store) (*File, error) {
+	res := &File{}
 	data, err := store.Get()
 	if err != nil {
 		return nil, err

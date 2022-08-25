@@ -42,17 +42,21 @@ type Edge struct {
 	To   Inbound
 }
 
+// Node of workflow
 type Node struct {
 	// processor name
-	ProcName string
+	ProcName string `json:"processor"`
 	// key node is attached importance by Analyzer
+	//
+	// deprecated
 	Key bool
 	// whether caching its result in global cache
-	Cache bool
+	Cache bool `json:"cache"`
 }
 
 // store the file path of workflow's inbound data
-type InboundGroups map[Groupname]map[string]data.FileStore
+type InboundGroups map[Groupname]InboundGroup
+type InboundGroup = map[string]data.FileStore
 
 // Generate json content
 /*
@@ -110,12 +114,16 @@ func LoadFile(path string) (*Workflow, error) {
 //
 // json marshalable
 type Workflow struct {
-	// a node itself is just a processor
-	Node map[string]Node
-	Edge []Edge
-	// inbound consists a series of data group.
-	// Inbound: map[datagroup_name]map[field]Bound
-	Inbound map[Groupname]map[string][]Inbound
+	// All nodes of the workflow. Each node has its unique name, represented by
+	// the key.
+	Node map[string]Node `json:"node"`
+
+	// All edges of the workflow. An edge is directed, connecting two different
+	// nodes.
+	Edge []Edge `json:"edge"`
+
+	// Inbound stores edges from submission's fields to nodes.
+	Inbound map[Groupname]map[string][]Inbound `json:"inbound"`
 }
 
 type ResultMeta struct {

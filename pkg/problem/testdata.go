@@ -66,7 +66,7 @@ func (r *DirRecord) Range(visitor func(field string, name string)) {
 func (r *DirRecord) InboundGroup() workflow.InboundGroup {
 	res := workflow.InboundGroup{}
 	r.Range(func(field, name string) {
-		res[field] = data.NewFlexFile(name)
+		res[field] = data.NewFileFile(name)
 	})
 	return res
 }

@@ -18,6 +18,19 @@ func (r RunnerAuto) Label() (inputlabel []string, outputlabel []string) {
 func (r RunnerAuto) Process(inputs Inbounds, outputs Outbounds) *Result {
 	// make it executable
 	inputs["executable"].SetMode(0744)
+	// to file
+	_, err := outputs["stdout"].File()
+	if err != nil {
+		return RtErrRes(err)
+	}
+	_, err = outputs["stderr"].File()
+	if err != nil {
+		return RtErrRes(err)
+	}
+	_, err = outputs["judgerlog"].File()
+	if err != nil {
+		return RtErrRes(err)
+	}
 
 	// parse config
 	data, err := inputs["conf"].Get()

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/bitfield/script"
-	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -120,7 +119,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		CFLAGS, _ := script.Exec("python3-config --includes").String()
 		LDFLAGS, _ := script.Exec("python3-config --ldflags").String()
 		PY_VER, _ := script.Exec(`python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))'`).String()
-		out, err := script.Exec(strings.Join([]string{
+		_, err = script.Exec(strings.Join([]string{
 			"/usr/bin/gcc",
 			strings.TrimSpace(CFLAGS),
 			strings.TrimSpace(LDFLAGS),
@@ -133,7 +132,6 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		if err != nil {
 			return RtErrRes(err)
 		}
-		pp.Print(out)
 		return &processor.Result{
 			Code: processor.Ok,
 			Msg:  "",

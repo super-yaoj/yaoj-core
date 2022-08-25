@@ -53,7 +53,17 @@ the future.
 
 See github.com/super-yaoj/yaoj-core/workflow.
 
-Problem gives workflow 4 datagroups naming "testcase", "subtask", "static" and
+Problem gives workflow 3 datagroups naming "testcase", "static" and
 "submission" respectively.
+
+# Hack
+
+hack 是指对选手代码的纠错。hack 的通常流程为
+
+1. 指定一份提交为标准答案
+
+2. 提供一份（可能不完整）的数据执行 workflow，跳过无法执行的结点，这样可以得到一些中间输出文件
+
+3. 利用一部分中间输出文件来填补数据后执行选手的代码，判断是否正确。
 */
 package problem

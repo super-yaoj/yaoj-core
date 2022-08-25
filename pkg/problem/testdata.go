@@ -158,14 +158,16 @@ func (r *TestdataGroup) NewTestcase() *TestcaseData {
 	r.Testcases = append(r.Testcases, res)
 	return res
 }
-func (r *TestdataGroup) NewSubtask() *SubtaskData {
+func (r *TestdataGroup) NewSubtask(fullscore float64, method CalcMethod) *SubtaskData {
 	if r.Subtasks == nil {
 		panic("subtasks not init")
 	}
 	tdir := path.Join(r.Dir, fmt.Sprint(len(r.Subtasks)))
 	res := &SubtaskData{
-		prob: r.prob,
-		Dir:  tdir,
+		prob:      r.prob,
+		Dir:       tdir,
+		Fullscore: fullscore,
+		Method:    method,
 	}
 	r.Subtasks = append(r.Subtasks, res)
 	return res

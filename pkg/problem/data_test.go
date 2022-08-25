@@ -31,7 +31,7 @@ func TestData(t *testing.T) {
 	testcase_1.SetData("output", []byte("3"))
 
 	prob.Data.InitSubtasks()
-	sbt_1 := prob.Data.NewSubtask()
+	sbt_1 := prob.Data.NewSubtask(100, problem.Mmin)
 	ststc_1 := sbt_1.NewTestcase()
 	ststc_1.SetData("input", []byte("3 4"))
 	ststc_1.SetData("output", []byte("7"))

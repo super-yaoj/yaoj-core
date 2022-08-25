@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/super-yaoj/yaoj-core/internal/pkg/analyzers"
 	workflowruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/workflow"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
@@ -122,7 +123,7 @@ func (r *RtProblem) RunTestcases(testcases []*problem.TestcaseData,
 			})
 		} else {
 			inbounds[workflow.Gtests] = testcase.InboundGroup()
-			wk, err := workflowruntime.New(r.Workflow, workdir, fullscore, workflowruntime.DefaultAnalyzer{}, r.lg)
+			wk, err := workflowruntime.New(r.Workflow, workdir, fullscore, analyzers.DefaultAnalyzer{}, r.lg)
 			if err != nil {
 				return nil, err
 			}

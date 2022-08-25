@@ -82,9 +82,9 @@ func runWorkflow(w wk.Workflow, dir string, inboundPath wk.InboundGroups,
 		} else if usecache && gcache.Has(node.hash, "@result") { // cache level 2
 			logger.Printf("Run node[%s] (cached lv 2)", id)
 			result := processor.Result{}
-			err := result.Unserialize(gcache.Get(node.hash, "@result"))
+			err := result.Deserialize(gcache.Get(node.hash, "@result"))
 			if err != nil {
-				return &Error{"result unserialize", err}
+				return &Error{"result Deserialize", err}
 			}
 			node.Output = make([]string, 0)
 			for _, label := range processor.OutputLabel(node.ProcName) {

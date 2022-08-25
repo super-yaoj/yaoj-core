@@ -52,7 +52,6 @@ func (r *fsCache) Set(hash sha, decorator string, data []byte) {
 	file, _ := os.Create(path.Join(r.dir, key))
 	file.Write(data)
 	file.Close()
-
 	r.assign(key)
 }
 func (r *fsCache) SetSource(hash sha, decorator string, name string) {

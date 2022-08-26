@@ -31,8 +31,8 @@ type UojTraditional struct {
 var _ Migrator = (*UojTraditional)(nil)
 
 func (r *UojTraditional) Migrate(dest string) error {
-	tmpdir := path.Join(os.TempDir(), "yaoj-migrator-"+utils.RandomString(10))
-	if err := os.MkdirAll(tmpdir, os.ModePerm); err != nil {
+	tmpdir, err := os.MkdirTemp(os.TempDir(), "yaoj-migrator-*")
+	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tmpdir)

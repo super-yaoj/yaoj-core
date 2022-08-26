@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/super-yaoj/yaoj-core/internal/app/migrator"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
@@ -22,19 +21,13 @@ func Main() error {
 		return ErrUnknownType
 	}
 
-	dir, err := os.MkdirTemp(os.TempDir(), "yaoj-migrator-*")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-
-	err = mig.Migrate(destFile)
+	err := mig.Migrate(destFile)
 	if err != nil {
 		return err
 	}
 	chk := utils.FileChecksum(destFile)
-	lg.Infof("checksum: %s\n", chk.String())
 
+	lg.Infof("checksum: %s\n", chk.String())
 	lg.Infof("done.")
 	return nil
 }

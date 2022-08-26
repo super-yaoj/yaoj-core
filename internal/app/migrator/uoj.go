@@ -1,190 +1,135 @@
 package migrator
 
 import (
-	"bytes"
 	"fmt"
-	"io/fs"
+	"io"
 	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
-	"github.com/super-yaoj/yaoj-core/pkg/buflog"
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
-	"github.com/super-yaoj/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/workflow/preset"
 )
 
-// 格式：
-//
-//	prob/
-//	  data/ # 里面放数据（就是svn的1文件夹里的内容。也就是说data/problem.conf是配置文件
-//	  statement/ # 放public资源，pdf啥的。不建子文件夹
-//	    statement/statement.md # 特殊，放题面内容（UOJ好像是没有多语言题面的，所以默认中文
-//	    statement/tutorial.pdf # 题解
-type Uoj struct{}
+func NewUojTraditional(data_dir string, logger *log.Entry) *UojTraditional {
+	return &UojTraditional{
+		data_dir: data_dir,
+		lg:       logger.WithField("migrator", "uoj_traditional"),
+	}
+}
 
-var _ Migrator = Uoj{}
+type UojTraditional struct {
+	// 数据文件夹（就是svn的1文件夹里的内容。也就是说 problem.conf 是配置文件）
+	data_dir string
+	lg       *log.Entry
+}
 
-func (r Uoj) Migrate(src string, dest string) (Problem, error) {
-	tmpdir := path.Join(os.TempDir(), "uoj-yaoj-migrator")
-	os.RemoveAll(tmpdir)
+var _ Migrator = (*UojTraditional)(nil)
+
+func (r *UojTraditional) Migrate(dest string) error {
+	tmpdir := path.Join(os.TempDir(), "yaoj-migrator-"+utils.RandomString(10))
 	if err := os.MkdirAll(tmpdir, os.ModePerm); err != nil {
-		return nil, err
+		return err
 	}
-	prob, err := problem.NewProbData(tmpdir)
+	defer os.RemoveAll(tmpdir)
+	// create problem
+	prob, err := problem.New(tmpdir, r.lg)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
 	prob.Fullscore = 100
+	prob.AnalyzerName = "traditional"
+	prob.Workflow = &preset.Traditional
 
-	// parse statement (ignore error)
-	filepath.Walk(path.Join(src, "statement"), func(pathname string, info fs.FileInfo, err error) error {
-		if err != nil {
-			logger.Printf("prevent panic by handling failure accessing a path %q: %v", pathname, err)
-			return err
-		}
-		if info.IsDir() && info.Name() != "statement" {
-			logger.Printf("skipping a dir: %#v", info.Name())
-			return filepath.SkipDir
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		// logger.Printf("Access file: %q", pathname)
-		basename := path.Base(pathname)
-		patch, err := prob.AddFile(basename, pathname)
-		if err != nil {
-			return err
-		}
-		prob.Statement[basename] = patch
-		return nil
-	})
-	if _, ok := prob.Statement["statement.md"]; ok {
-		prob.SetStmt("zh", prob.Statement["statement.md"])
-	}
-
-	fconf, err := os.ReadFile(path.Join(src, "data", "problem.conf"))
+	// read conf
+	fconf, err := os.ReadFile(path.Join(r.data_dir, "problem.conf"))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	conf := parseConf(fconf)
+	conf := r.parseConf(fconf)
 
+	// ensure use builtin judger
 	if conf["use_builtin_judger"] != "on" {
-		panic("gg")
-	}
-
-	// parse tests
-	prob.Tests.Fields().Add("input")
-	prob.Tests.Fields().Add("output")
-	prob.Tests.Fields().Add("_score")
-
-	n_tests := parseInt(conf["n_tests"])
-	for i := 1; i <= n_tests; i++ {
-		input := fmt.Sprint(conf["input_pre"], i, ".", conf["input_suf"])
-		output := fmt.Sprint(conf["output_pre"], i, ".", conf["output_suf"])
-
-		rcd := prob.Tests.Records().New()
-		err = prob.SetValFile(rcd, "input", path.Join(src, "data", input))
-		if err != nil {
-			return nil, err
-		}
-		err = prob.SetValFile(rcd, "output", path.Join(src, "data", output))
-		if err != nil {
-			return nil, err
-		}
+		return ErrUnsupportedJudger
 	}
 
 	// parse sample
 	if conf["n_sample_tests"] != "" {
-		prob.Pretest.CalcMethod = problem.Msum
-		prob.Pretest.Tests.Fields().Add("input")
-		prob.Pretest.Tests.Fields().Add("output")
-		prob.Pretest.Tests.Fields().Add("_score")
+		prob.Pretest.InitTestcases()
+		prob.Pretest.Method = problem.Msum
+		prob.Pretest.Fullscore = 100
+
 		nsample := parseInt(conf["n_sample_tests"])
 		for i := 1; i <= int(nsample); i++ {
 			input := fmt.Sprint("ex_", conf["input_pre"], i, ".", conf["input_suf"])
 			output := fmt.Sprint("ex_", conf["output_pre"], i, ".", conf["output_suf"])
 
-			rcd := prob.Pretest.Tests.Records().New()
-			err = prob.SetValFile(rcd, "input", path.Join(src, "data", input))
+			tc := prob.Pretest.NewTestcase()
+			err = tc.SetSource("input", path.Join(r.data_dir, input))
 			if err != nil {
-				return nil, err
+				return err
 			}
-			err = prob.SetValFile(rcd, "output", path.Join(src, "data", output))
+			err = tc.SetSource("output", path.Join(r.data_dir, output))
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 	// parse extra tests
 	if conf["n_ex_tests"] != "" {
-		prob.Extra.CalcMethod = problem.Msum
-		prob.Extra.Tests.Fields().Add("input")
-		prob.Extra.Tests.Fields().Add("output")
-		prob.Extra.Tests.Fields().Add("_score")
+		prob.Extra.InitTestcases()
+		prob.Extra.Method = problem.Msum
+		prob.Extra.Fullscore = 100
+
 		nextra := parseInt(conf["n_ex_tests"])
 		for i := 1; i <= int(nextra); i++ {
 			input := fmt.Sprint("ex_", conf["input_pre"], i, ".", conf["input_suf"])
 			output := fmt.Sprint("ex_", conf["output_pre"], i, ".", conf["output_suf"])
 
-			rcd := prob.Extra.Tests.Records().New()
-			err = prob.SetValFile(rcd, "input", path.Join(src, "data", input))
+			tc := prob.Extra.NewTestcase()
+			err = tc.SetSource("input", path.Join(r.data_dir, input))
 			if err != nil {
-				return nil, err
+				return err
 			}
-			err = prob.SetValFile(rcd, "output", path.Join(src, "data", output))
+			err = tc.SetSource("output", path.Join(r.data_dir, output))
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 
 	// parse checker
 	if _, ok := conf["use_builtin_checker"]; ok {
-		logger.Printf("use builtin checker: %q", conf["use_builtin_checker"])
+		r.lg.Infof("use builtin checker: %q", conf["use_builtin_checker"])
 		// copy checker
 		file, _ := asserts.Open(path.Join("asserts", "checker", conf["use_builtin_checker"]+".cpp"))
-		pchk, err := prob.AddFileReader("checker_uoj.cpp", file)
 		if err != nil {
-			return nil, err
+			return err
+		}
+		ctnt, err := io.ReadAll(file)
+		if err != nil {
+			return err
 		}
 		file.Close()
-		prob.Static["checker"] = pchk
+		prob.Static.SetData("checker", ctnt)
 	} else { // custom checker
-		pchk, err := prob.AddFile("checker_custom.cpp", path.Join(src, "data", "chk.cpp"))
+		err = prob.Static.SetSource("checker", path.Join(r.data_dir, "chk.cpp"))
 		if err != nil {
-			return nil, err
+			return err
 		}
-		prob.Static["checker"] = pchk
 	}
-
-	/*
-		// enable hack (traditional)
-		prob.HackFields = map[string]problem.SubmLimit{
-			"input": {
-				Accepted: utils.Cplain,
-				Length:   20 * 1024 * 1024,
-			},
-		}
-		prob.HackIOMap = map[string]workflow.Outbound{
-			"output": {
-				Name:       "run",
-				LabelIndex: 0, // "stdout"
-			},
-		}
-	*/
 
 	// parse limitation
 	tl := parseInt(conf["time_limit"])
 	ml := parseInt(conf["memory_limit"])
 	ol := parseInt(conf["output_limit"])
 
-	limReader := bytes.NewReader((&processors.RunConf{
+	err = prob.Static.SetData("runner_config", (&processors.RunConf{
 		RealTime: 1000 * 60, // 1min
 		CpuTime:  uint(tl) * 1000,
 		VirMem:   0,
@@ -193,100 +138,90 @@ func (r Uoj) Migrate(src string, dest string) (Problem, error) {
 		Output:   uint(ol) * 1024 * 1024,
 		Fileno:   10,
 	}).Serialize())
-
-	plim, err := prob.AddFileReader("lim.txt", limReader)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	prob.Static["limitation"] = plim
-	prob.Statement["_tl"] = fmt.Sprint(tl * 1000)
-	prob.Statement["_ml"] = conf["memory_limit"]
-	prob.Statement["_ol"] = conf["output_limit"]
+	prob.Attr["time_limit"] = fmt.Sprint(tl * 1000)
+	prob.Attr["memory_limit"] = conf["memory_limit"]
+	prob.Attr["output_limit"] = conf["output_limit"]
 
-	var builder workflow.Builder
-	builder.SetNode("compile_source", "compiler:auto", false, true)
-	builder.SetNode("compile_checker", "compiler:testlib", false, true)
-	builder.SetNode("check", "checker:testlib", false, false)
-	builder.SetNode("run", "runner:stdio", true, false)
-	builder.AddInbound(workflow.Gstatic, "limitation", "run", "limit")
-	builder.AddInbound(workflow.Gstatic, "checker", "compile_checker", "source")
-	builder.AddInbound(workflow.Gsubm, "source", "compile_source", "source")
-	builder.AddInbound(workflow.Gtests, "input", "run", "stdin")
-	builder.AddInbound(workflow.Gtests, "input", "check", "input")
-	builder.AddInbound(workflow.Gtests, "output", "check", "answer")
-	builder.AddEdge("compile_source", "result", "run", "executable")
-	builder.AddEdge("compile_checker", "result", "check", "checker")
-	builder.AddEdge("run", "stdout", "check", "output")
-	graph, err := builder.WorkflowGraph()
-	if err != nil {
-		return nil, err
-	}
-	err = prob.SetWkflGraph(graph.Serialize())
-	if err != nil {
-		return nil, err
-	}
-
-	// parse subtask
+	// parse data
 	if sNsubt, ok := conf["n_subtasks"]; ok {
-		prob.CalcMethod = problem.Mmin
+		prob.Data.InitSubtasks()
+		prob.Data.Method = problem.Msum
 		nsubt, _ := strconv.ParseInt(sNsubt, 10, 32)
-		prob.Tests.Fields().Add("_subtaskid")
-		prob.Subtasks.Fields().Add("_subtaskid")
-		prob.Subtasks.Fields().Add("_score")
 
-		logger.Printf("nsubtask = %d", nsubt)
+		r.lg.Infof("nsubtask = %d", nsubt)
 
 		las := 0
 		for i := 1; i <= int(nsubt); i++ {
 			endid, _ := strconv.ParseInt(conf[fmt.Sprint("subtask_end_", i)], 10, 32)
 			score, _ := strconv.ParseInt(conf[fmt.Sprint("subtask_score_", i)], 10, 32)
-			record := prob.Subtasks.Records().New()
-			record["_subtaskid"] = fmt.Sprint("subtask_", i)
-			record["_score"] = fmt.Sprint(score)
+			sub := prob.Data.NewSubtask(float64(score), problem.Mmin)
 
-			if depstr, ok := conf[fmt.Sprint("subtask_dependence_", i)]; ok {
-				prob.Subtasks.Fields().Add("_depend")
+			// if depstr, ok := conf[fmt.Sprint("subtask_dependence_", i)]; ok {
+			// 	if depstr == "many" {
+			// 		var deps = []string{}
+			// 		for j := 1; conf[fmt.Sprint("subtask_dependence_", i, "_", j)] != ""; j++ {
+			// 			deps = append(deps, conf[fmt.Sprint("subtask_dependence_", i, "_", j)])
+			// 		}
+			// 		deps = utils.Map(deps, func(token string) string {
+			// 			return "subtask_" + token
+			// 		})
+			// 		record["_depend"] = strings.Join(deps, ",")
+			// 	} else {
+			// 		record["_depend"] = "subtask_" + depstr
+			// 	}
+			// }
 
-				if depstr == "many" {
-					var deps = []string{}
-					for j := 1; conf[fmt.Sprint("subtask_dependence_", i, "_", j)] != ""; j++ {
-						deps = append(deps, conf[fmt.Sprint("subtask_dependence_", i, "_", j)])
-					}
-					deps = utils.Map(deps, func(token string) string {
-						return "subtask_" + token
-					})
-					record["_depend"] = strings.Join(deps, ",")
-				} else {
-					record["_depend"] = "subtask_" + depstr
-				}
-			}
+			for j := las + 1; j <= int(endid); j++ {
+				input := fmt.Sprint(conf["input_pre"], j, ".", conf["input_suf"])
+				output := fmt.Sprint(conf["output_pre"], j, ".", conf["output_suf"])
 
-			for j := las; j < int(endid); j++ {
-				prob.Tests.Record[j]["_subtaskid"] = record["_subtaskid"]
+				tc := sub.NewTestcase()
+				tc.SetSource("input", path.Join(r.data_dir, input))
+				tc.SetSource("output", path.Join(r.data_dir, output))
 			}
 			las = int(endid)
 		}
 	} else {
-		prob.CalcMethod = problem.Msum
+		prob.Data.InitTestcases()
+		n_tests := parseInt(conf["n_tests"])
+
+		r.lg.Infof("ntests = %d", n_tests)
+
+		for i := 1; i <= n_tests; i++ {
+			input := fmt.Sprint(conf["input_pre"], i, ".", conf["input_suf"])
+			output := fmt.Sprint(conf["output_pre"], i, ".", conf["output_suf"])
+
+			tc := prob.Data.NewTestcase()
+			tc.SetSource("input", path.Join(r.data_dir, input))
+			tc.SetSource("output", path.Join(r.data_dir, output))
+		}
 	}
 
 	// analyzer
 	// panic("not complete")
-	prob.Submission["source"] = problem.SubmLimit{
-		Length:   1024 * 64,
-		Accepted: utils.Csource,
+	prob.Submission = problem.SubmConf{
+		"source": {
+			Length:   1024 * 64,
+			Accepted: utils.Csource,
+		},
+		"option": {
+			Length:   1024 * 64,
+			Accepted: utils.Ccompconf,
+		},
 	}
 
-	os.MkdirAll(dest, os.ModePerm)
-	err = prob.Export(dest)
+	err = prob.DumpFile(dest)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return problem.LoadDir(dest)
+	return nil
 }
 
 // 对于每一行，第一个 token 作为字段，之后的作为值
-func parseConf(content []byte) (res map[string]string) {
+func (r *UojTraditional) parseConf(content []byte) (res map[string]string) {
 	res = map[string]string{}
 	lines := strings.Split(string(content), "\n")
 	for _, line := range lines {
@@ -313,7 +248,7 @@ func parseConf(content []byte) (res map[string]string) {
 		}
 		res[directive] = val
 	}
-	logger.Printf("conf: %+v", res)
+	// r.lg.Infof("conf: %+v", res)
 	return
 }
 
@@ -321,5 +256,3 @@ func parseInt(s string) int {
 	res, _ := strconv.ParseInt(s, 10, 32)
 	return int(res)
 }
-
-var logger = buflog.New("[migrator] ")

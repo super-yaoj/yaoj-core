@@ -68,7 +68,7 @@ int main() {
 `
 
 func TestRtProblem(t *testing.T) {
-	prob, err := problem.New(t.TempDir())
+	prob, err := problem.New(t.TempDir(), log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}

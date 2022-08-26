@@ -2,10 +2,10 @@ package problem
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"path"
 
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 )
 
@@ -56,6 +56,8 @@ type Data struct {
 
 	// 数据文件存放的文件夹 absolute dir
 	dir string
+
+	lg *log.Entry
 }
 
 // 将整个题目打包
@@ -70,13 +72,14 @@ func (r *Data) DumpFile(dest string) error {
 	if err != nil {
 		return err
 	}
-	err = zipDir(r.dir, dest)
+	err = zipDir(r.dir, dest, r.lg)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// load problem archive to dir
 func LoadFileTo(name string, dir string) (*Data, error) {
 	err := unzipSource(name, dir)
 	if err != nil {
@@ -109,7 +112,7 @@ func (r *Data) initProb() {
 
 // remove problem (dir)
 func (r *Data) Finalize() error {
-	log.Printf("finalize %q", r.dir)
+	r.lg.Infof("finalize.")
 	return os.RemoveAll(r.dir)
 }
 
@@ -122,7 +125,7 @@ func (r *Data) Hackable() bool {
 // default fullscore: 100
 //
 // create the dir if necessary
-func New(dir string) (*Data, error) {
+func New(dir string, logger *log.Entry) (*Data, error) {
 	err := os.MkdirAll(dir, 0750)
 	if err != nil {
 		return nil, err
@@ -134,6 +137,7 @@ func New(dir string) (*Data, error) {
 		Submission: make(SubmConf),
 		Attr:       make(map[string]string),
 		dir:        dir,
+		lg:         logger.WithField("problem", dir),
 	}
 	res.Attached = res.newDirRecord("attached")
 	res.Statement = res.newDirRecord("statement")

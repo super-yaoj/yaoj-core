@@ -8,9 +8,11 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 )
 
-func zipDir(root string, dest string) error {
+func zipDir(root string, dest string, lg *log.Entry) error {
 	root = path.Clean(root)
 	file, err := os.Create(dest)
 	if err != nil {
@@ -43,7 +45,7 @@ func zipDir(root string, dest string) error {
 		// This snippet happens to work because I don't use
 		// absolute pathnames, but ensure your real-world code
 		// transforms pathname into a zip-root relative pathname.
-		fmt.Printf("Create %#v\n", zippath)
+		lg.Printf("Create %#v\n", zippath)
 		f, err := w.Create(zippath)
 		if err != nil {
 			return err

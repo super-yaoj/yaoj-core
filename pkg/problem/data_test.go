@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/k0kubun/pp/v3"
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 )
 
@@ -12,7 +13,7 @@ func TestData(t *testing.T) {
 	stmt_str := "读入两个整数 a, b, 请输出 a + b 的值。"
 	pdir := t.TempDir()
 	// new problem
-	prob, err := problem.New(pdir)
+	prob, err := problem.New(pdir, log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}

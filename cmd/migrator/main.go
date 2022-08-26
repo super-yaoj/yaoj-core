@@ -2,60 +2,40 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"path"
 
 	"github.com/super-yaoj/yaoj-core/internal/app/migrator"
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
 var isUoj bool
 var srcDir string
-var destDir string
-var dumpFile string
+var destFile string
+var lg = log.NewTerminal()
 
 func Main() error {
-	err := os.MkdirAll(destDir, os.ModePerm)
+	var mig migrator.Migrator
+	if isUoj {
+		mig = migrator.NewUojTraditional(srcDir, lg)
+	} else {
+		return ErrUnknownType
+	}
+
+	dir, err := os.MkdirTemp(os.TempDir(), "yaoj-migrator-*")
 	if err != nil {
 		return err
 	}
-	fmt.Printf("output to %q\n", destDir)
+	defer os.RemoveAll(dir)
 
-	var mig migrator.Migrator
-	if isUoj {
-		mig = migrator.Uoj{}
-	} else {
-		return fmt.Errorf("type not specified")
+	err = mig.Migrate(destFile)
+	if err != nil {
+		return err
 	}
+	chk := utils.FileChecksum(destFile)
+	lg.Infof("checksum: %s\n", chk.String())
 
-	if dumpFile == "" {
-		_, err = mig.Migrate(srcDir, destDir)
-		if err != nil {
-			return err
-		}
-	} else {
-		dir, err := os.MkdirTemp(os.TempDir(), "yaoj-migrator-******")
-		if err != nil {
-			return err
-		}
-		prob, err := mig.Migrate(srcDir, dir)
-		if err != nil {
-			return err
-		}
-		dest := path.Join(destDir, dumpFile)
-		err = prob.DumpFile(dest)
-		if err != nil {
-			return err
-		}
-		err = os.RemoveAll(dir)
-		if err != nil {
-			return err
-		}
-		chk := utils.FileChecksum(dest)
-		fmt.Printf("checksum: %s\n", chk.String())
-	}
-	fmt.Printf("done.")
+	lg.Infof("done.")
 	return nil
 }
 
@@ -64,7 +44,7 @@ func main() {
 
 	err := Main()
 	if err != nil {
-		fmt.Printf("[error]: %s\n", err.Error())
+		lg.WithError(err).Error("some things was wrong")
 		flag.Usage()
 		return
 	}
@@ -72,7 +52,6 @@ func main() {
 
 func init() {
 	flag.StringVar(&srcDir, "src", "", "source directory")
-	flag.StringVar(&destDir, "output", ".", "output directory")
-	flag.StringVar(&dumpFile, "dump", "", "output a zip archive with given name")
+	flag.StringVar(&destFile, "dump", "", "output a zip archive with given name")
 	flag.BoolVar(&isUoj, "uoj", false, "migrate from uoj problem data")
 }

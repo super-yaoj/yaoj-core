@@ -1,10 +1,6 @@
 package migrator
 
-import "github.com/super-yaoj/yaoj-core/pkg/problem"
-
 type Migrator interface {
-	// migrate dumpfile to YaOJ's problem in specific dir
-	Migrate(src string, dir string) (Problem, error)
+	// migrate dumpfile to YaOJ's problem file
+	Migrate(dest string) error
 }
-
-type Problem = problem.Problem

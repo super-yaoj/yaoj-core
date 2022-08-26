@@ -151,6 +151,7 @@ const (
 	Cplain CtntType = iota
 	Cbinary
 	Csource
+	Ccompconf // 编译选项，即 CompileConf 序列化后的文件
 )
 
 func init() {

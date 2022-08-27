@@ -12,7 +12,7 @@ jobs:
     - name: Install neccessary commands (judger)
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y auditd flex make gengetopt bison xxd strace
+        sudo apt-get install -y auditd flex make gengetopt bison xxd strace cython
     - name: Install LLVM and Clang (judger)
       uses: KyleMayes/install-llvm-action@v1
       with:

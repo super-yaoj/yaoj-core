@@ -158,48 +158,6 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-// dependon: whether i dependon j.
-// Complexity: O(n^2)
-func TopoSort(size int, dependon func(i, j int) bool) (res []int, err error) {
-	indegree := make([]int, size)
-	for i := 0; i < size; i++ {
-		for j := 0; j < size; j++ {
-			if i != j && dependon(i, j) {
-				indegree[i]++
-			}
-		}
-	}
-	res = make([]int, 0, size)
-	err = nil
-	for {
-		pre := len(res)
-		for i := 0; i < size; i++ {
-			if indegree[i] == 0 {
-				res = append(res, i)
-				indegree[i] = -1
-			}
-		}
-		if pre == len(res) {
-			break
-		}
-		for id := pre; id < len(res); id++ {
-			i := res[id]
-			for j := 0; j < size; j++ {
-				if i != j && dependon(j, i) {
-					if indegree[j] < 0 {
-						panic("topo sort error")
-					}
-					indegree[j]--
-				}
-			}
-		}
-	}
-	if len(res) != size {
-		err = fmt.Errorf("not a DAG")
-	}
-	return
-}
-
 // index of the first element equaling to v, otherwise return -1
 func FindIndex[T comparable](array []T, v T) int {
 	for i, item := range array {

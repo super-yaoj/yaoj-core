@@ -25,6 +25,7 @@ func Judge(ctx *Context) error {
 		return err
 	}
 	// ready to judge
+	ctx.lg.Debug("ready to judge")
 	ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 
 	go func() {

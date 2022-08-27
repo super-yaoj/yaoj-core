@@ -29,5 +29,4 @@ jobs:
         go build -v ./cmd/judgeserver
     - name: Test
       run: |
-        go test -v ./pkg/...
-        go test -v ./test
+        go test -v ./...

@@ -120,7 +120,13 @@ type RtWorkflow struct {
 }
 
 // create a new runtime workflow working in dir
+//
+// create dir if necessary
 func New(wk *Workflow, dir string, fullscore float64, analyzer Analyzer, logger *log.Entry) (*RtWorkflow, error) {
+	err := os.MkdirAll(dir, 0750)
+	if err != nil {
+		return nil, err
+	}
 	logger = logger.WithField("workflow", dir)
 
 	res := &RtWorkflow{
@@ -218,6 +224,15 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 
 	res := r.analyzer.Analyze(r)
 	return &res, nil
+}
+
+// 删除所有文件（销毁自身）
+func (r *RtWorkflow) Finalize() error {
+	err := os.RemoveAll(r.dir)
+	if err != nil {
+		r.lg.WithError(err).Warn("finalizing runtime workflow")
+	}
+	return err
 }
 
 // 总结信息统计结果

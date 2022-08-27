@@ -25,19 +25,6 @@ type RtProblem struct {
 	cache workflowruntime.RtNodeCache
 }
 
-func New(data *problem.Data, dir string, logger *log.Entry) (*RtProblem, error) {
-	gcache, err := workflowruntime.NewCache(path.Join(dir, "cache"))
-	if err != nil {
-		return nil, err
-	}
-	return &RtProblem{
-		Data:  data,
-		dir:   dir,
-		lg:    logger.WithField("problem", dir),
-		cache: gcache,
-	}, nil
-}
-
 // 创建一个新的临时文件夹用于数据组的评测
 //
 // 同时会创建一个名为 subm 的子文件夹用于加载提交记录
@@ -141,4 +128,31 @@ func (r *RtProblem) RunTestcases(testcases []*problem.TestcaseData,
 		}
 	}
 	return results, nil
+}
+
+// 删除所有文件（销毁自身）
+func (r *RtProblem) Finalize() error {
+	err := os.RemoveAll(r.dir)
+	if err != nil {
+		r.lg.WithError(err).Warn("finalizing runtime problem")
+	}
+	return err
+}
+
+// create dir if necessary
+func New(data *problem.Data, dir string, logger *log.Entry) (*RtProblem, error) {
+	err := os.MkdirAll(dir, 0750)
+	if err != nil {
+		return nil, err
+	}
+	gcache, err := workflowruntime.NewCache(path.Join(dir, "cache"))
+	if err != nil {
+		return nil, err
+	}
+	return &RtProblem{
+		Data:  data,
+		dir:   dir,
+		lg:    logger.WithField("problem", dir),
+		cache: gcache,
+	}, nil
 }

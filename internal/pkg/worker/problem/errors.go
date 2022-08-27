@@ -18,7 +18,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("worker.workflow %s: %v", e.Trgr, e.Err)
+	return fmt.Sprintf("worker.problem %s: %v", e.Trgr, e.Err)
 }
 
 func (e *Error) Unwrap() error {
@@ -33,7 +33,7 @@ type DataError struct {
 }
 
 func (e *DataError) Error() string {
-	return fmt.Sprintf("worker.workflow: %v (%#v)", e.Err, e.Data)
+	return fmt.Sprintf("worker.problem: %v (%#v)", e.Err, e.Data)
 }
 
 func (e *DataError) Unwrap() error {

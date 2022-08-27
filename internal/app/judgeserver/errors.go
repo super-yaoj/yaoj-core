@@ -1,4 +1,4 @@
-package migrator
+package judgeserver
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrUnsupportedJudger = errors.New("unsupported judger")
+	ErrInvalidChecksum = errors.New("invalid checksum synchornizing data")
 )
 
 type Error struct {
@@ -17,7 +17,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("migrator %s: %v", e.Trgr, e.Err)
+	return fmt.Sprintf("judgeserver %s: %v", e.Trgr, e.Err)
 }
 
 func (e *Error) Unwrap() error {
@@ -32,7 +32,7 @@ type DataError struct {
 }
 
 func (e *DataError) Error() string {
-	return fmt.Sprintf("migrator: %v (%#v)", e.Err, e.Data)
+	return fmt.Sprintf("judgeserver: %v (%#v)", e.Err, e.Data)
 }
 
 func (e *DataError) Unwrap() error {
@@ -41,4 +41,16 @@ func (e *DataError) Unwrap() error {
 
 func ErrWithData(err error, data any) error {
 	return &DataError{data, err}
+}
+
+type HttpError struct {
+	status int
+	Err    error
+}
+
+func (e *HttpError) Error() string {
+	return fmt.Sprintf("judgeserver: %v", e.Err)
+}
+func (e *HttpError) Unwrap() error {
+	return e.Err
 }

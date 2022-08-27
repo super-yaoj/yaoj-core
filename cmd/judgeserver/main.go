@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/super-yaoj/yaoj-core/internal/app/judgeserver"
 )
@@ -14,7 +15,14 @@ func main() {
 	flag.Parse()
 
 	server := judgeserver.New()
-	err := server.Run(address) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	dir := path.Join(os.TempDir(), "yaoj-judgeserver")
+	err := judgeserver.Init(dir)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
+
+	err = server.Run(address) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)

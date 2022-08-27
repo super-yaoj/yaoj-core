@@ -1,13 +1,10 @@
 package judgeserver
 
 import (
-	"errors"
 	"fmt"
 )
 
-var (
-	ErrInvalidChecksum = errors.New("invalid checksum synchornizing data")
-)
+var ()
 
 type Error struct {
 	// what operation trigger this error

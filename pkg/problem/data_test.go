@@ -4,7 +4,6 @@ import (
 	"path"
 	"testing"
 
-	"github.com/k0kubun/pp/v3"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 )
@@ -69,5 +68,5 @@ func TestData(t *testing.T) {
 	if string(output_1) != "7" {
 		t.Fatalf("output changed: %s", string(stmt))
 	}
-	pp.Println(prob2)
+	// pp.Println(prob2)
 }

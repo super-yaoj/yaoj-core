@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/k0kubun/pp/v3"
 	workflowruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/workflow"
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -191,7 +190,7 @@ func (r DefaultAnalyzer) Analyze(w *workflowruntime.RtWorkflow) workflow.Result 
 				if result.Outcome != "accepted" {
 					res.Title = "Wrong Answer"
 					res.Score = 0
-					pp.Print(result)
+					// pp.Print(result)
 				}
 				file.Close()
 				return res

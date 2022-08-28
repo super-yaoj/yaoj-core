@@ -23,6 +23,8 @@ import (
 //
 // 原则上全局只有一个 Service 实例
 type Service struct {
+	*sync.Mutex
+
 	// 总的工作目录
 	dir string
 	// 题目数据的存放目录
@@ -40,6 +42,9 @@ type Service struct {
 
 // 存入题目的数据
 func (r *Service) SetProblem(checksum string, reader io.Reader) error {
+	r.Lock()
+	defer r.Unlock()
+
 	file, err := os.CreateTemp(r.work_dir, "p-*.zip")
 	if err != nil {
 		return &Error{"create temp", err}
@@ -80,6 +85,9 @@ func (r *Service) SetProblem(checksum string, reader io.Reader) error {
 //
 // mode: 目前可选 "pretest", "extra"
 func (r *Service) RunProblem(checksum string, submission_data []byte, mode string) (*problem.Result, error) {
+	r.Lock()
+	defer r.Unlock()
+
 	val, ok := r.store.Load(checksum)
 	if !ok {
 		return nil, &DataError{checksum, ErrNoSuchProblem}
@@ -117,6 +125,9 @@ func (r *Service) RunProblem(checksum string, submission_data []byte, mode strin
 }
 
 func (r *Service) CustomTest(submission_data []byte) (*workflow.Result, error) {
+	r.Lock()
+	defer r.Unlock()
+
 	submission, err := problem.LoadSubmData(submission_data)
 	if err != nil {
 		return nil, &Error{"load submission", err}
@@ -174,6 +185,7 @@ func New(dir string, logger *log.Entry) (*Service, error) {
 	}
 
 	return &Service{
+		Mutex:    &sync.Mutex{},
 		dir:      dir,
 		data_dir: data_dir,
 		work_dir: work_dir,

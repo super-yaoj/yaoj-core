@@ -47,7 +47,7 @@ func (r ByteValue) String() string {
 // Code is required, others are optional
 type Result struct {
 	// Result status：OK/RE/MLE/...
-	Code              StatusCode
+	Code              processor.Code
 	RealTime, CpuTime *time.Duration
 	Memory            *ByteValue
 	Signal            *int

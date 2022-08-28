@@ -108,7 +108,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		if err != nil {
 			return SysErrRes(err)
 		}
-		if res.Code != judger.Ok { // cython 编译出错
+		if res.Code != processor.Ok { // cython 编译出错
 			// logger.Printf("cython compile error!")
 			res := res.ProcResult()
 			res.Msg = "cython compile: " + res.Msg

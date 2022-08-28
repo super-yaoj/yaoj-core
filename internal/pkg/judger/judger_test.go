@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 func TestJudge(t *testing.T) {
@@ -26,6 +27,9 @@ func TestJudge(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 		return
+	}
+	if res.Code != processor.Ok {
+		t.Fatal("invalid result", res)
 	}
 	t.Log(*res)
 }

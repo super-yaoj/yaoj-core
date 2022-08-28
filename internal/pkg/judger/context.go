@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 	"unsafe"
+
+	"github.com/super-yaoj/yaoj-core/pkg/processor"
 )
 
 //go:generate go version
@@ -15,21 +17,6 @@ import (
 //#include "./yaoj-judger/include/judger.h"
 //#include <stdlib.h>
 import "C"
-
-// StatusCode describes final status of a execution. Note that Ok is
-// the only status for success
-type StatusCode int
-
-const (
-	Ok               StatusCode = C.OK
-	RuntimeError     StatusCode = C.RE
-	MemoryExceed     StatusCode = C.MLE
-	TimeExceed       StatusCode = C.TLE
-	OoutputExceed    StatusCode = C.OLE
-	SystemError      StatusCode = C.SE
-	DangerousSyscall StatusCode = C.DSC
-	ExitError        StatusCode = C.ECE
-)
 
 type LimitType int
 
@@ -92,7 +79,7 @@ func (r context) Result() Result {
 	memory := ByteValue(result.real_memory)
 
 	return Result{
-		Code:     StatusCode(result.code),
+		Code:     processor.Code(result.code),
 		Signal:   &signal,
 		Msg:      fmt.Sprintf("Exit with code %d", exitCode),
 		RealTime: &realTime,
@@ -183,7 +170,7 @@ func (r context) RunForkGeneral() Result {
 	memory := ByteValue(result.real_memory)
 
 	return Result{
-		Code:     StatusCode(result.code),
+		Code:     processor.Code(result.code),
 		Signal:   &signal,
 		Msg:      fmt.Sprintf("Exit with code %d", exitCode),
 		RealTime: &realTime,
@@ -201,7 +188,7 @@ func (r context) RunForkInteractive() Result {
 	memory := ByteValue(result.real_memory)
 
 	return Result{
-		Code:     StatusCode(result.code),
+		Code:     processor.Code(result.code),
 		Signal:   &signal,
 		Msg:      fmt.Sprintf("Exit with code %d", exitCode),
 		RealTime: &realTime,

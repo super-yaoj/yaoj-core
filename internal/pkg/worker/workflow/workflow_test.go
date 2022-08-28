@@ -47,7 +47,7 @@ func TestRtWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wk, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.Traditional{}, log.NewTerminal())
+	wk, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,8 +59,9 @@ func TestRtWorkflow(t *testing.T) {
 	if res.Title != "Accepted" {
 		t.Fatal("invalid result", res)
 	}
+	wk.Finalize()
 
-	wk2, err := workflowruntime.New(&preset.Traditional, dir, 100, analyzers.Traditional{}, log.NewTerminal())
+	wk2, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, log.NewTerminal())
 	if err != nil {
 		t.Fatal(err)
 	}

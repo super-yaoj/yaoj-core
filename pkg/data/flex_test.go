@@ -12,7 +12,6 @@ import (
 
 func TestFile(t *testing.T) {
 	f := data.NewFile(path.Join(t.TempDir(), "File"), nil)
-	// content mode
 	f.Set([]byte("hello"))
 	if ctnt, err := f.Get(); err != nil || string(ctnt) != "hello" {
 		t.Fatal(ctnt, err)
@@ -23,7 +22,6 @@ func TestFile(t *testing.T) {
 	if err := f.ChangePath(path.Join(t.TempDir(), "File")); err != nil {
 		t.Fatal(err)
 	}
-	// file mode
 	f.SetMode(0744)
 	cmd := exec.Command("bash", f.Path())
 	cmd.Stdout = os.Stdout
@@ -44,5 +42,16 @@ func TestFile(t *testing.T) {
 	}
 	if _, err := f.Get(); err != nil {
 		t.Fatal(err)
+	}
+	// test dupfile
+	filename := path.Join(t.TempDir(), "file")
+	if err := f.DupFile(filename, 0777); err != nil {
+		t.Fatal(err)
+	}
+	f3 := data.NewFileFile(filename)
+	f3data, _ := f3.Get()
+	fdata, _ := f.Get()
+	if string(f3data) != string(fdata) {
+		t.Fatal("dup file error")
 	}
 }

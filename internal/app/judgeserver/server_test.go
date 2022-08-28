@@ -120,6 +120,22 @@ func TestServer(t *testing.T) {
 		}
 	})
 
+	t.Run("Judge(BadRequest)", func(t *testing.T) {
+		// bind error
+		req, err := http.NewRequest("POST", "/judge?sum="+Checksum, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rec := httptest.NewRecorder()
+
+		server.ServeHTTP(rec, req)
+		if rec.Code != http.StatusBadRequest {
+			data, _ := io.ReadAll(rec.Result().Body)
+			lg.Error(string(data))
+			t.Fatal(string(data))
+		}
+	})
+
 	t.Run("CustomTest", func(t *testing.T) {
 		finish := make(chan int)
 		// add handler

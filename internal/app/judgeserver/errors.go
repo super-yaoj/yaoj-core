@@ -21,25 +21,6 @@ func (e *Error) Unwrap() error {
 	return e.Err
 }
 
-type DataError struct {
-	// attached data
-	Data any
-	// the original error
-	Err error
-}
-
-func (e *DataError) Error() string {
-	return fmt.Sprintf("judgeserver: %v (%#v)", e.Err, e.Data)
-}
-
-func (e *DataError) Unwrap() error {
-	return e.Err
-}
-
-func ErrWithData(err error, data any) error {
-	return &DataError{data, err}
-}
-
 type HttpError struct {
 	status int
 	Err    error

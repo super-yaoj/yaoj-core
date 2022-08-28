@@ -19,6 +19,18 @@ func NewTerminal() *Entry {
 			ForceColors: true,
 		},
 		Hooks: make(logrus.LevelHooks),
+		Level: logrus.InfoLevel,
+	})
+}
+
+// 测试时使用的 logger （彩色、DebugLevel）
+func NewTest() *Entry {
+	return logrus.NewEntry(&logrus.Logger{
+		Out: os.Stderr,
+		Formatter: &logrus.TextFormatter{
+			ForceColors: true,
+		},
+		Hooks: make(logrus.LevelHooks),
 		Level: logrus.DebugLevel,
 	})
 }

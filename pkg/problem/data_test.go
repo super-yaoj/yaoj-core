@@ -12,7 +12,7 @@ func TestData(t *testing.T) {
 	stmt_str := "读入两个整数 a, b, 请输出 a + b 的值。"
 	pdir := t.TempDir()
 	// new problem
-	prob, err := problem.New(pdir, log.NewTerminal())
+	prob, err := problem.New(pdir, log.NewTest())
 	if err != nil {
 		t.Fatal(err)
 	}

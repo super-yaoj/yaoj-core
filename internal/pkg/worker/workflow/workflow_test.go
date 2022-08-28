@@ -19,6 +19,7 @@ var input = `114 514`
 var output = `628`
 
 func TestRtWorkflow(t *testing.T) {
+	lg := log.NewTest()
 	dir := t.TempDir()
 	inbounds := workflow.InboundGroups{
 		workflow.Gstatic: make(map[string]data.FileStore),
@@ -47,7 +48,7 @@ func TestRtWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wk, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, log.NewTerminal())
+	wk, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, lg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +62,7 @@ func TestRtWorkflow(t *testing.T) {
 	}
 	wk.Finalize()
 
-	wk2, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, log.NewTerminal())
+	wk2, err := workflowruntime.New(&preset.Traditional, t.TempDir(), 100, analyzers.Traditional{}, lg)
 	if err != nil {
 		t.Fatal(err)
 	}

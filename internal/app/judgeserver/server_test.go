@@ -21,10 +21,10 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	lg := log.NewTerminal()
+	lg := log.NewTest()
 	// create server
-	server := judgeserver.New()
-	err := judgeserver.Init(t.TempDir())
+	server := judgeserver.New(lg)
+	err := judgeserver.Init(t.TempDir(), lg)
 	if err != nil {
 		t.Fatal(err)
 	}

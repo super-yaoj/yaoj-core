@@ -35,11 +35,13 @@ func (r *Server) Handle(name string, method string, handler func(ctx *Context) e
 	})
 }
 
-func New() *Server {
+func New(logger *log.Entry) *Server {
 	server := &Server{
-		Engine: gin.Default(),
-		lg:     log.NewTerminal(),
+		Engine: gin.New(),
+		lg:     logger,
 	}
+	server.Use(Logger(logger))
+	server.Use(gin.Recovery())
 
 	server.Handle("/judge", "POST", Judge)
 	server.Handle("/custom", "POST", CustomTest)
@@ -68,8 +70,8 @@ func New() *Server {
 
 var workerService *worker.Service
 
-func Init(dir string) error {
-	service, err := worker.New(dir, log.NewTerminal())
+func Init(dir string, logger *log.Entry) error {
+	service, err := worker.New(dir, logger)
 	if err != nil {
 		return err
 	}

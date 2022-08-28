@@ -9,7 +9,8 @@ import (
 )
 
 func TestRtProblem(t *testing.T) {
-	prob, err := tests.CreateProblem(t.TempDir(), log.NewTerminal())
+	lg := log.NewTest()
+	prob, err := tests.CreateProblem(t.TempDir(), lg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,7 +20,7 @@ func TestRtProblem(t *testing.T) {
 
 	// init RtProblem
 	rtdir := t.TempDir()
-	rtprob, err := problemruntime.New(prob, rtdir, log.NewTerminal())
+	rtprob, err := problemruntime.New(prob, rtdir, lg)
 	if err != nil {
 		t.Fatal(err)
 	}

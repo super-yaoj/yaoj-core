@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"path"
 
 	"github.com/super-yaoj/yaoj-core/internal/app/judgeserver"
+	"github.com/super-yaoj/yaoj-core/pkg/log"
 )
 
 var address string
@@ -14,18 +14,17 @@ var address string
 func main() {
 	flag.Parse()
 
-	server := judgeserver.New()
+	lg := log.NewTerminal()
+	server := judgeserver.New(lg)
 	dir := path.Join(os.TempDir(), "yaoj-judgeserver")
-	err := judgeserver.Init(dir)
+	err := judgeserver.Init(dir, lg)
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		lg.Fatal(err)
 	}
 
 	err = server.Run(address) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		lg.Fatal(err)
 	}
 }
 

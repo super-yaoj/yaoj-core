@@ -45,7 +45,7 @@ func zipDir(root string, dest string, lg *log.Entry) error {
 		// This snippet happens to work because I don't use
 		// absolute pathnames, but ensure your real-world code
 		// transforms pathname into a zip-root relative pathname.
-		lg.Printf("Create %#v\n", zippath)
+		lg.Debugf("Create %#v", zippath)
 		f, err := w.Create(zippath)
 		if err != nil {
 			return err

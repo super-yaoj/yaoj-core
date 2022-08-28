@@ -89,6 +89,14 @@ func TestProcessors(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+	t.Run("PythonFlags", func(t *testing.T) {
+		cflags, ldflags, err := processors.PythonFlags()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Log("cflags: ", cflags)
+		t.Log("ldflags: ", ldflags)
+	})
 
 	t.Run("CompilerAuto", func(t *testing.T) {
 		var testcases = []struct {

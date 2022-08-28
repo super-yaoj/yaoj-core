@@ -116,18 +116,16 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		}
 
 		// compile c file using gcc
-		CFLAGS, _ := script.Exec("python3-config --includes").String()
-		LDFLAGS, _ := script.Exec("python3-config --ldflags").String()
-		PY_VER, _ := script.Exec(`python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))'`).String()
+		CFLAGS, LDFLAGS, err := PythonFlags()
+		if err != nil {
+			return SysErrRes(err)
+		}
 		_, err = script.Exec(strings.Join([]string{
 			"/usr/bin/gcc",
+			"-Wall", "-Wextra", "-fpie",
 			strings.TrimSpace(CFLAGS),
+			"-o", outputs["result"].Path(), c_src,
 			strings.TrimSpace(LDFLAGS),
-			strings.TrimSpace("-lpython" + PY_VER),
-			c_src,
-			"-o",
-			outputs["result"].Path(),
-			"-Os",
 		}, " ")).String()
 		if err != nil {
 			return RtErrRes(err)

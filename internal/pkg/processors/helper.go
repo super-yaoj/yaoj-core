@@ -2,6 +2,8 @@ package processors
 
 import (
 	"encoding/json"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
@@ -95,4 +97,26 @@ func (r *CompileConf) Serialize() (res []byte) {
 
 func (r *CompileConf) Deserialize(data []byte) error {
 	return json.Unmarshal(data, r)
+}
+
+func PythonFlags() (cflags string, ldflags string, err error) {
+	var cflagsbuf, ldflagsbuf strings.Builder
+	// cflags
+	cmdcflags := exec.Command("python3-config", "--cflags", "--embed")
+	cmdcflags.Stdout = &cflagsbuf
+	err = cmdcflags.Run()
+	if err != nil {
+		return "", "", err
+	}
+	cflags = cflagsbuf.String()
+	// ldflags
+	cmdldflags := exec.Command("python3-config", "--ldflags", "--embed")
+	cmdldflags.Stdout = &ldflagsbuf
+	err = cmdldflags.Run()
+	if err != nil {
+		return "", "", err
+	}
+	ldflags = ldflagsbuf.String()
+
+	return
 }

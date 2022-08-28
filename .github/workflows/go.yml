@@ -20,13 +20,13 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: 1.19
     - name: Generate
       run: go generate -v
     - name: Build
       run: |
-        go build -v ./cmd/migrator
-        go build -v ./cmd/judgeserver
+        go build ./cmd/migrator
+        go build ./cmd/judgeserver
     - name: Test
       run: |
-        go test -v ./...
+        go test ./...

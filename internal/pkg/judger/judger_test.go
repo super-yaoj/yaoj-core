@@ -16,12 +16,12 @@ func TestJudge(t *testing.T) {
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
 		judger.WithLog(path.Join(dir, "runtime.log"), 0, false),
-		judger.WithRealMemory(3*judger.MB),
-		judger.WithStack(3*judger.MB),
-		judger.WithVirMemory(3*judger.MB),
+		judger.WithRealMemory(300*judger.MB),
+		judger.WithStack(300*judger.MB),
+		judger.WithVirMemory(300*judger.MB),
 		judger.WithRealTime(time.Millisecond*1000),
 		judger.WithCpuTime(time.Millisecond*1000),
-		judger.WithOutput(3*judger.MB),
+		judger.WithOutput(30*judger.MB),
 		judger.WithFileno(10),
 	)
 	if err != nil {

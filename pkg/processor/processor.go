@@ -1,4 +1,7 @@
-// Package processor provides builtin processors and processor plugin loader
+// Package processor provides interface and utilities for processor.
+//
+// Processor is one of YaOJ's core concept, which is the smallest unit
+// to do stuffs by running commands under certain limitation.
 package processor
 
 import (
@@ -15,6 +18,8 @@ type Inbounds Bounds
 type Outbounds Bounds
 
 // Processor takes a series of input (files) and generates a series of outputs.
+//
+// Each input or output is a series of data interfaced [github.com/super-yaoj/yaoj-core/pkg/data.FileStore]
 type Processor interface {
 	// Report human-readable label for each input and output.
 	// Labels are used in workflow (especially builder).

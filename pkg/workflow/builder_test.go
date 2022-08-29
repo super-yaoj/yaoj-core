@@ -1,10 +1,10 @@
 package workflow_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 func TestBuilder(t *testing.T) {
@@ -31,7 +31,7 @@ func TestBuilder(t *testing.T) {
 		var builder workflow.Builder
 		builder.AddInbound("badgroup", "", "", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidGroupname) {
+		if !yerrors.Is(err, workflow.ErrInvalidGroupname) {
 			t.Fatal(err)
 		}
 	})
@@ -39,7 +39,7 @@ func TestBuilder(t *testing.T) {
 		var builder workflow.Builder
 		builder.AddEdge("badfrom", "", "runner", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidEdge) {
+		if !yerrors.Is(err, workflow.ErrInvalidEdge) {
 			t.Fatal(err)
 		}
 	})
@@ -48,7 +48,7 @@ func TestBuilder(t *testing.T) {
 		builder.SetNode("runner", "runner:stdio", true, false)
 		builder.AddEdge("runner", "", "badto", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidEdge) {
+		if !yerrors.Is(err, workflow.ErrInvalidEdge) {
 			t.Fatal(err)
 		}
 	})
@@ -56,7 +56,7 @@ func TestBuilder(t *testing.T) {
 		var builder workflow.Builder
 		builder.AddInbound(workflow.Gstatic, "", "", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidEdge) {
+		if !yerrors.Is(err, workflow.ErrInvalidEdge) {
 			t.Fatal(err)
 		}
 	})
@@ -65,7 +65,7 @@ func TestBuilder(t *testing.T) {
 		builder.SetNode("runner", "runner:stdio", true, false)
 		builder.AddInbound(workflow.Gstatic, "", "runner", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidInputLabel) {
+		if !yerrors.Is(err, workflow.ErrInvalidInputLabel) {
 			t.Fatal(err)
 		}
 	})
@@ -74,7 +74,7 @@ func TestBuilder(t *testing.T) {
 		builder.SetNode("runner", "runner:stdio", true, false)
 		builder.AddEdge("runner", "", "runner", "stdin")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidOutputLabel) {
+		if !yerrors.Is(err, workflow.ErrInvalidOutputLabel) {
 			t.Fatal(err)
 		}
 	})
@@ -83,7 +83,7 @@ func TestBuilder(t *testing.T) {
 		builder.SetNode("runner", "runner:auto", true, false)
 		builder.AddEdge("runner", "stdout", "runner", "")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrInvalidInputLabel) {
+		if !yerrors.Is(err, workflow.ErrInvalidInputLabel) {
 			t.Fatal(err)
 		}
 	})
@@ -93,7 +93,7 @@ func TestBuilder(t *testing.T) {
 		builder.AddEdge("runner", "stdout", "runner", "stdin")
 		builder.AddEdge("runner", "stdout", "runner", "stdin")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrDuplicateDest) {
+		if !yerrors.Is(err, workflow.ErrDuplicateDest) {
 			t.Fatal(err)
 		}
 	})
@@ -103,7 +103,7 @@ func TestBuilder(t *testing.T) {
 		builder.AddEdge("runner", "stdout", "runner", "stdin")
 		builder.AddInbound(workflow.Gstatic, "stdout", "runner", "stdin")
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrDuplicateDest) {
+		if !yerrors.Is(err, workflow.ErrDuplicateDest) {
 			t.Fatal(err)
 		}
 	})
@@ -111,7 +111,7 @@ func TestBuilder(t *testing.T) {
 		var builder workflow.Builder
 		builder.SetNode("runner", "runner:auto", true, false)
 		_, err := builder.Workflow()
-		if !errors.Is(err, workflow.ErrIncompleteNodeInput) {
+		if !yerrors.Is(err, workflow.ErrIncompleteNodeInput) {
 			t.Fatal(err)
 		}
 	})

@@ -3,6 +3,7 @@ package workflow
 import (
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 // Builder builds a workflow. It doesn't need initialization manually
@@ -48,7 +49,7 @@ func (r *Builder) AddEdge(from, frlabel, to, tolabel string) {
 func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
 	r.tryInit()
 	if group != Gtests && group != Gstatic && group != Gsubm {
-		r.err = &Error{"AddInbound", ErrInvalidGroupname}
+		r.err = yerrors.Situated("Builder.AddInbound", ErrInvalidGroupname)
 		return
 	}
 	r.inbound = append(r.inbound, [4]string{string(group), field, to, tolabel})
@@ -83,17 +84,17 @@ func (r *Builder) Workflow() (*Workflow, error) {
 		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
 
 		if _, ok := graph.Node[from]; !ok {
-			return nil, &DataError{edge, ErrInvalidEdge}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidEdge)
 		} else if _, ok := graph.Node[to]; !ok {
-			return nil, &DataError{edge, ErrInvalidEdge}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidEdge)
 		} else if frlabelIndex == -1 {
-			return nil, &DataError{edge, ErrInvalidOutputLabel}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidOutputLabel)
 		} else if tolabelIndex == -1 {
-			return nil, &DataError{edge, ErrInvalidInputLabel}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidInputLabel)
 		}
 
 		if get(to, tolabel) {
-			return nil, &DataError{edge, ErrDuplicateDest}
+			return nil, yerrors.Annotated("edge", edge, ErrDuplicateDest)
 		} else {
 			mark(to, tolabel)
 		}
@@ -107,13 +108,13 @@ func (r *Builder) Workflow() (*Workflow, error) {
 		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
 
 		if _, ok := graph.Node[to]; !ok {
-			return nil, &DataError{edge, ErrInvalidEdge}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidEdge)
 		} else if tolabelIndex == -1 {
-			return nil, &DataError{edge, ErrInvalidInputLabel}
+			return nil, yerrors.Annotated("edge", edge, ErrInvalidInputLabel)
 		}
 
 		if get(to, tolabel) {
-			return nil, &DataError{edge, ErrDuplicateDest}
+			return nil, yerrors.Annotated("edge", edge, ErrDuplicateDest)
 		} else {
 			mark(to, tolabel)
 		}
@@ -129,7 +130,7 @@ func (r *Builder) Workflow() (*Workflow, error) {
 	for name, node := range graph.Node {
 		for _, label := range processor.InputLabel(node.ProcName) {
 			if !get(name, label) {
-				return nil, &DataError{name + ":" + label, ErrIncompleteNodeInput}
+				return nil, yerrors.Annotated(name, label, ErrIncompleteNodeInput)
 			}
 		}
 	}

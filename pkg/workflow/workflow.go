@@ -7,6 +7,7 @@ import (
 
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 // workflow 数据的来源（域）
@@ -96,7 +97,7 @@ func Load(serial []byte) (*Workflow, error) {
 	var graph Workflow
 	err := json.Unmarshal(serial, &graph)
 	if err != nil {
-		return nil, err
+		return nil, yerrors.Situated("Load", err)
 	}
 	return &graph, nil
 }
@@ -105,7 +106,7 @@ func Load(serial []byte) (*Workflow, error) {
 func LoadFile(path string) (*Workflow, error) {
 	serial, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, yerrors.Situated("LoadFile", err)
 	}
 	return Load(serial)
 }

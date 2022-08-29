@@ -1,13 +1,12 @@
 /*
 Package problem is a package for test problem manipulation.
 
+note that the following docuemnts are out of date.
+
 # Tests
 
 Usually a problem contains multiple testcases, whose data are stored in
 dir/data/tests.  All testcases have the same fields.
-
-Testcase may have "_score" field, whose value is either a number string or
-"average".
 
 # Subtask
 

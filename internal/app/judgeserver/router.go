@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 func Judge(ctx *Context) error {
@@ -17,7 +18,7 @@ func Judge(ctx *Context) error {
 	}
 	var qry Judge
 	if err := ctx.BindQuery(&qry); err != nil {
-		return &HttpError{http.StatusBadRequest, &Error{"bind query", err}}
+		return &HttpError{http.StatusBadRequest, yerrors.Situated("bind query", err)}
 	}
 
 	submdata, err := io.ReadAll(ctx.Request.Body)

@@ -17,6 +17,7 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow/preset"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 // 提供题目评测的服务
@@ -47,7 +48,7 @@ func (r *Service) SetProblem(checksum string, reader io.Reader) error {
 
 	file, err := os.CreateTemp(r.work_dir, "p-*.zip")
 	if err != nil {
-		return &Error{"create temp", err}
+		return yerrors.Situated("create temp", err)
 	}
 	defer func() {
 		file.Close()
@@ -56,22 +57,22 @@ func (r *Service) SetProblem(checksum string, reader io.Reader) error {
 
 	_, err = io.Copy(file, reader)
 	if err != nil {
-		return &Error{"copy", err}
+		return yerrors.Situated("copy", err)
 	}
 
 	chk := utils.FileChecksum(file.Name()).String()
 	if checksum != chk {
-		return &DataError{chk, ErrInvalidChecksum}
+		return yerrors.Annotated("chk", chk, ErrInvalidChecksum)
 	}
 
 	prob_dir, err := os.MkdirTemp(r.data_dir, "p-")
 	if err != nil {
-		return &Error{"mkdir temp", err}
+		return yerrors.Situated("mkdir temp", err)
 	}
 
 	prob, err := problem.LoadFileTo(file.Name(), prob_dir)
 	if err != nil {
-		return &Error{"load problem file", err}
+		return yerrors.Situated("load problem file", err)
 	}
 
 	r.store.Store(checksum, prob)
@@ -90,13 +91,13 @@ func (r *Service) RunProblem(checksum string, submission_data []byte, mode strin
 
 	val, ok := r.store.Load(checksum)
 	if !ok {
-		return nil, &DataError{checksum, ErrNoSuchProblem}
+		return nil, yerrors.Annotated("checksum", checksum, ErrNoSuchProblem)
 	}
 	prob := val.(*problem.Data)
 
 	rtprob, err := problemruntime.New(prob, path.Join(r.work_dir, utils.RandomString(8)), r.lg)
 	if err != nil {
-		return nil, &Error{"create runtime problem", err}
+		return nil, yerrors.Situated("create RtProblem", err)
 	}
 	defer rtprob.Finalize()
 	// determine testset
@@ -111,7 +112,7 @@ func (r *Service) RunProblem(checksum string, submission_data []byte, mode strin
 	// load submission
 	submission, err := problem.LoadSubmData(submission_data)
 	if err != nil {
-		return nil, &Error{"load submission", err}
+		return nil, yerrors.Situated("load submission", err)
 	}
 
 	start_time := time.Now()
@@ -119,7 +120,7 @@ func (r *Service) RunProblem(checksum string, submission_data []byte, mode strin
 
 	result, err := rtprob.RunTestset(testset, submission)
 	if err != nil {
-		return nil, &Error{"run testset", err}
+		return nil, yerrors.Situated("run testset", err)
 	}
 	return result, nil
 }
@@ -130,12 +131,12 @@ func (r *Service) CustomTest(submission_data []byte) (*workflow.Result, error) {
 
 	submission, err := problem.LoadSubmData(submission_data)
 	if err != nil {
-		return nil, &Error{"load submission", err}
+		return nil, yerrors.Situated("load submission", err)
 	}
 	dir := path.Join(r.work_dir, utils.RandomString(8))
 	rtwork, err := workflowruntime.New(&preset.Customtest, dir, 100, analyzers.Customtest{}, r.lg)
 	if err != nil {
-		return nil, &Error{"create runtime workflow", err}
+		return nil, yerrors.Situated("create RtWorkflow", err)
 	}
 	defer rtwork.Finalize()
 

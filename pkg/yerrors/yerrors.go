@@ -36,7 +36,7 @@ type annotatedError struct {
 }
 
 func (r *annotatedError) Error() string {
-	return fmt.Sprintf("%v\n(%s=%v)", r.err, r.key, r.value)
+	return fmt.Sprintf("%v\n(%s: %v)", r.err, r.key, r.value)
 }
 
 func (r *annotatedError) Unwrap() error {

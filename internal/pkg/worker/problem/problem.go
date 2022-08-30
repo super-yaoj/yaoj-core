@@ -10,6 +10,7 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 type RtProblem struct {
@@ -50,9 +51,6 @@ func (r *RtProblem) TestsetDir() (string, error) {
 
 func (r *RtProblem) RunTestset(set *problem.TestdataGroup, subm problem.Submission) (*problem.Result, error) {
 	// check test set
-	if set == nil {
-		return nil, ErrInvalidSet
-	}
 	if r.Extra != set && r.Pretest != set && r.Data.Data != set {
 		return nil, ErrInvalidSet
 	}
@@ -112,7 +110,7 @@ func (r *RtProblem) RunTestcases(testcases []*problem.TestcaseData,
 			inbounds[workflow.Gtests] = testcase.InboundGroup()
 			analyzer := analyzers.Get(r.AnalyzerName)
 			if analyzer == nil {
-				return nil, &DataError{r.AnalyzerName, ErrUnknownAnalyzer}
+				return nil, yerrors.Annotated("analyzer", r.AnalyzerName, ErrUnknownAnalyzer)
 			}
 			wk, err := workflowruntime.New(r.Workflow, workdir, fullscore, analyzer, r.lg)
 			if err != nil {

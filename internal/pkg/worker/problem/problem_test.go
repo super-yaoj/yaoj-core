@@ -38,4 +38,7 @@ func TestRtProblem(t *testing.T) {
 	if res.Score != res.Fullscore {
 		t.Fatal("invalid result", res)
 	}
+
+	// finalize
+	defer rtprob.Finalize()
 }

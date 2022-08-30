@@ -10,6 +10,7 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
+	"github.com/super-yaoj/yaoj-core/pkg/yerrors"
 )
 
 type (
@@ -72,7 +73,7 @@ func (r *RtNode) run(name string, cachers []RtNodeCache) error {
 	for _, cacher := range cachers {
 		if cacher.Exist(r) {
 			if err := cacher.Assign(r); err != nil {
-				return &Error{"cacher.Assign", err}
+				return yerrors.Situated("cacher.Assign", err)
 			}
 			cached = true
 			break
@@ -82,7 +83,7 @@ func (r *RtNode) run(name string, cachers []RtNodeCache) error {
 		// check input complete
 		for _, label := range processor.InputLabel(r.ProcName) {
 			if r.Input[label] == nil {
-				return &DataError{label, ErrIncompleteInput}
+				return yerrors.Annotated("label", label, ErrIncompleteInput)
 			}
 		}
 		r.lg.Info("run node without cache")
@@ -95,7 +96,7 @@ func (r *RtNode) run(name string, cachers []RtNodeCache) error {
 	if !cached {
 		for _, cacher := range cachers {
 			if err := cacher.Add(r); err != nil {
-				return &Error{"cacher.Add", err}
+				return yerrors.Situated("cacher.Add", err)
 			}
 		}
 	}
@@ -156,7 +157,7 @@ func New(wk *Workflow, dir string, fullscore float64, analyzer Analyzer, logger 
 		return false
 	})
 	if err != nil {
-		return nil, &Error{"topsort", err}
+		return nil, yerrors.Situated("topsort", err)
 	}
 	res.sortedNames = sorted
 	return res, nil
@@ -197,7 +198,7 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 
 	previousWd, err := os.Getwd()
 	if err != nil {
-		return nil, &Error{"getwd", err}
+		return nil, yerrors.Situated("os.Getwd", err)
 	}
 	// go back after testing
 	defer os.Chdir(previousWd)
@@ -205,7 +206,7 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 	// change working dir
 	err = os.Chdir(r.dir)
 	if err != nil {
-		return nil, &Error{"chdir", err}
+		return nil, yerrors.Situated("os.Chdir", err)
 	}
 	r.lg.Debug("change working dir")
 
@@ -215,7 +216,7 @@ func (r *RtWorkflow) Run(inbounds workflow.InboundGroups, dismiss_incomplete boo
 			r.lg.WithField("node", name).Debug("dismiss incomplete input")
 			continue
 		} else if err != nil {
-			return nil, &DataError{"node: " + name, err}
+			return nil, yerrors.Annotated("node", name, err)
 		}
 		for _, edge := range r.EdgeFrom(name) {
 			r.RtNodes[edge.To.Name].Input[edge.To.Label] = r.RtNodes[edge.From.Name].Output[edge.From.Label]

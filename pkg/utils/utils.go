@@ -10,6 +10,7 @@ import (
 	"time"
 
 	yutils "github.com/super-yaoj/yaoj-utils"
+	"golang.org/x/text/language"
 )
 
 type HashValue = yutils.HashValue
@@ -166,4 +167,22 @@ func FindIndex[T comparable](array []T, v T) int {
 		}
 	}
 	return -1
+}
+
+var SupportLangs = []language.Tag{
+	language.Chinese,
+	language.English,
+	language.Und,
+}
+
+var langMatcher = language.NewMatcher(SupportLangs)
+
+// 猜测 locale 与支持的语言中匹配的语言。如果是 Und 那么返回第一个语言（默认）
+func GuessLang(lang string) string {
+	tag, _, _ := langMatcher.Match(language.Make(lang))
+	if tag == language.Und {
+		tag = SupportLangs[0]
+	}
+	base, _ := tag.Base()
+	return base.String()
 }

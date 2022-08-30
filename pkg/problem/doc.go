@@ -1,7 +1,7 @@
 /*
 Package problem is a package for test problem manipulation.
 
-note that the following docuemnts are out of date.
+note that the following docuemnts have been out of date.
 
 # Tests
 

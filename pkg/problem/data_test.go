@@ -17,6 +17,13 @@ func TestData(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// bad new
+	_, err = problem.New("", nil)
+	if err == nil {
+		t.Fatal("invalid err")
+	}
+	t.Log(err)
+
 	// set data
 	prob.Statement.Range(func(field, name string) {
 		t.Fatalf("unknown field: %s, %s", field, name)
@@ -42,6 +49,19 @@ func TestData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// bad dump
+	err = prob.DumpFile("")
+	if err == nil {
+		t.Fatal("invalid err")
+	}
+	t.Log(err)
+
+	// finalize
+	defer prob.Finalize()
+
+	// hackable
+	t.Log(prob.Hackable())
+
 	// load file
 	prob2, err := problem.LoadFileTo(dst, t.TempDir())
 	if err != nil {
@@ -68,5 +88,11 @@ func TestData(t *testing.T) {
 	if string(output_1) != "7" {
 		t.Fatalf("output changed: %s", string(stmt))
 	}
+	// bad load
+	_, err = problem.LoadFileTo("", t.TempDir())
+	if err == nil {
+		t.Fatal("invalid err", err)
+	}
+	t.Log(err)
 	// pp.Println(prob2)
 }

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 
@@ -26,13 +25,13 @@ type Submission map[workflow.Groupname]map[string]data.Store
 //	group: 所属数据组，一般是 workflow.Gsubm 表示提交数据。
 //	field: 字段名
 //	reader: 文件内容
-func (r Submission) SetSource(group workflow.Groupname, field string, reader io.Reader) {
-	// log.Printf("SetSource in group %s's %q naming %q", group, field, name)
+func (r Submission) SetReader(group workflow.Groupname, field string, reader io.Reader) error {
 	ctnt, err := io.ReadAll(reader)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	r.SetData(group, field, ctnt)
+	return nil
 }
 
 func (r Submission) SetData(group workflow.Groupname, field string, ctnt []byte) {
@@ -88,7 +87,7 @@ func (r Submission) DumpTo(writer io.Writer) error {
 }
 
 // 打包
-func (r Submission) DumpFile(name string) error {
+/*func (r Submission) DumpFile(name string) error {
 	file, err := os.Create(name)
 	if err != nil {
 		return err
@@ -96,7 +95,7 @@ func (r Submission) DumpFile(name string) error {
 	defer file.Close()
 
 	return r.DumpTo(file)
-}
+}*/
 
 // to inbound groups
 func (r Submission) Download(dir string) (res workflow.InboundGroups) {
@@ -162,7 +161,10 @@ func loadSubmOpener(zipfile interface {
 	for group, data := range pathmap {
 		for field, name := range *data {
 			file, _ := zipfile.Open(name)
-			res.SetSource(group, field, file)
+			err := res.SetReader(group, field, file)
+			if err != nil {
+				return nil, err
+			}
 			file.Close()
 		}
 	}
@@ -170,7 +172,7 @@ func loadSubmOpener(zipfile interface {
 }
 
 // 解压
-func LoadSubm(name string) (Submission, error) {
+/*func LoadSubm(name string) (Submission, error) {
 	zipfile, err := zip.OpenReader(name)
 	if err != nil {
 		return nil, err
@@ -178,7 +180,7 @@ func LoadSubm(name string) (Submission, error) {
 	defer zipfile.Close()
 
 	return loadSubmOpener(zipfile)
-}
+}*/
 
 func LoadSubmData(data []byte) (Submission, error) {
 	reader := bytes.NewReader(data)

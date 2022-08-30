@@ -37,7 +37,7 @@ func Judge(ctx *Context) error {
 			return
 		}
 
-		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.Byte()))
+		_, err = http.Post(qry.Callback, "text/json; charset=utf-8", bytes.NewReader(result.JSON()))
 		if err != nil {
 			ctx.lg.Errorf("callback request: %v", err)
 		}

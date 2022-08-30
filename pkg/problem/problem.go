@@ -34,7 +34,7 @@ type Result struct {
 	Subtasks []SubtResult `json:"subtasks"`
 }
 
-func (r Result) Byte() []byte {
+func (r Result) JSON() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
 		panic(err)

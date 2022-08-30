@@ -98,11 +98,7 @@ func unzipFile(f *zip.File, destination string) error {
 		return fmt.Errorf("invalid file path: %s", filePath)
 	}
 
-	// 5. Create directory tree
 	if f.FileInfo().IsDir() {
-		if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-			return err
-		}
 		return nil
 	}
 

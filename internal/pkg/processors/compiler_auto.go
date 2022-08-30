@@ -98,7 +98,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		utils.CopyFile(inputs["source"].Path(), py_src)
 		res, err := judger.Judge(
 			judger.WithPolicy("builtin:free"),
-			judger.WithLog(outputs["judgerlog"].Path(), 0, false),
+			judger.WithLog(outputs["judgerlog"].Path(), 0),
 			judger.WithRealTime(time.Minute),
 			judger.WithOutput(10*judger.MB),
 			// 名字里含有 '-' cython 会报错
@@ -144,7 +144,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		judger.WithArgument(argv...),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0),
 		judger.WithRealTime(time.Minute),
 		judger.WithOutput(10*judger.MB),
 	)

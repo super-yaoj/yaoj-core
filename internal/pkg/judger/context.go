@@ -1,7 +1,6 @@
 package judger
 
 import (
-	"errors"
 	"fmt"
 	"time"
 	"unsafe"
@@ -32,27 +31,19 @@ const (
 	filenoLim  LimitType = C.FILENO
 )
 
-func boolToInt(v bool) int {
-	if v {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 // Set logging options.
 // MUST be executed before creating context.
 //
 // filename set perform log file.
 // log_level determine minimum log level (DEBUG, INFO, WARN, ERROR = 0, 1, 2, 3)
 // with_color whether use ASCII color controller character
-func logSet(filename string, level int, color bool) error {
+func logSet(filename string, level int) error {
 	var cfilename *C.char = C.CString(filename)
 	defer C.free(unsafe.Pointer(cfilename))
 
-	res := C.log_set(cfilename, C.int(level), C.int(boolToInt(color)))
+	res := C.log_set(cfilename, C.int(level), C.int(0))
 	if res != 0 {
-		return errors.New("log_set return non zero")
+		return ErrLogSet
 	}
 	return nil
 }
@@ -70,7 +61,7 @@ func newContext() context {
 	return context{ctxt: C.yjudger_ctxt_create()}
 }
 
-func (r context) Result() Result {
+/* func (r context) Result() Result {
 	result := C.yjudger_result(r.ctxt)
 	signal := int(result.signal)
 	exitCode := int(result.exit_code)
@@ -86,7 +77,7 @@ func (r context) Result() Result {
 		CpuTime:  &cpuTime,
 		Memory:   &memory,
 	}
-}
+}*/
 
 func (r context) Free() {
 	C.yjudger_ctxt_free(r.ctxt)
@@ -99,14 +90,14 @@ func (r context) SetPolicy(dirname string, policy string) error {
 
 	flag := C.yjudger_set_policy(r.ctxt, cdirname, cpolicy)
 	if flag != 0 {
-		return errors.New("set policy error")
+		return ErrSetPolicy
 	}
 	return nil
 }
 
-func (r context) SetBuiltinPolicy(policy string) error {
+/*func (r context) SetBuiltinPolicy(policy string) error {
 	return r.SetPolicy(".", "builtin:"+policy)
-}
+}*/
 
 func cCharArray(a []string) []*C.char {
 	var ca []*C.char = make([]*C.char, len(a)+1)
@@ -132,7 +123,7 @@ func (r context) SetRunner(argv []string, env []string) error {
 
 	flag := C.yjudger_set_runner(r.ctxt, C.int(len(argv)), &cargv[0], &cenv[0])
 	if flag != 0 {
-		return errors.New("set runner error")
+		return ErrSetRunner
 	}
 	return nil
 }
@@ -145,7 +136,7 @@ const (
 	Interactive Runner = 1
 )
 
-func (r context) Run(runner Runner) error {
+/*func (r context) Run(runner Runner) error {
 	var flag C.int
 	switch runner {
 	case General:
@@ -153,13 +144,13 @@ func (r context) Run(runner Runner) error {
 	case Interactive:
 		flag = C.yjudger_interactive(r.ctxt)
 	default:
-		return errors.New("unknown runner: " + fmt.Sprint(runner))
+		return yerrors.Annotated("runner", runner, ErrUnknownRunner)
 	}
 	if flag != 0 {
-		return errors.New("perform general error")
+		return ErrRun
 	}
 	return nil
-}
+}*/
 
 func (r context) RunForkGeneral() Result {
 	result := C.yjudger_general_fork(r.ctxt)
@@ -200,6 +191,7 @@ func (r context) RunForkInteractive() Result {
 // short cut for Limitation
 type L map[LimitType]int64
 
+// it does nothing for invalid limit type
 func (r context) SetLimit(options L) error {
 	for key, val := range options {
 		switch key {
@@ -217,8 +209,6 @@ func (r context) SetLimit(options L) error {
 			C.yjudger_set_limit(r.ctxt, C.OUTPUT_SIZE, C.int(val))
 		case filenoLim:
 			C.yjudger_set_limit(r.ctxt, C.FILENO, C.int(val))
-		default:
-			return fmt.Errorf("unknown limit type: %d", key)
 		}
 	}
 	return nil

@@ -14,7 +14,7 @@ func ExampleJudge() {
 		judger.WithArgument("/dev/null", path.Join(dir, "output"), "/dev/null", "/usr/bin/ls", "."),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(path.Join(dir, "runtime.log"), 0, false),
+		judger.WithLog(path.Join(dir, "runtime.log"), 0),
 		judger.WithRealMemory(3*judger.MB),
 		judger.WithStack(3*judger.MB),
 		judger.WithVirMemory(3*judger.MB),

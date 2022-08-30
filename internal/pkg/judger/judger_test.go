@@ -1,6 +1,7 @@
 package judger_test
 
 import (
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ func TestJudge(t *testing.T) {
 		judger.WithArgument("/dev/null", path.Join(dir, "output"), "/dev/null", "/usr/bin/ls", "."),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(path.Join(dir, "runtime.log"), 0, false),
+		judger.WithLog(path.Join(dir, "runtime.log"), 0),
 		judger.WithRealMemory(300*judger.MB),
 		judger.WithStack(300*judger.MB),
 		judger.WithVirMemory(300*judger.MB),
@@ -23,6 +24,7 @@ func TestJudge(t *testing.T) {
 		judger.WithCpuTime(time.Millisecond*1000),
 		judger.WithOutput(30*judger.MB),
 		judger.WithFileno(10),
+		judger.WithEnviron(os.Environ()...),
 	)
 	if err != nil {
 		t.Error(err)
@@ -31,5 +33,5 @@ func TestJudge(t *testing.T) {
 	if res.Code != processor.Ok {
 		t.Fatal("invalid result", res)
 	}
-	t.Log(*res)
+	t.Log(*res, res.ProcResult())
 }

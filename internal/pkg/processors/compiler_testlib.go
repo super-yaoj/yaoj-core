@@ -46,7 +46,7 @@ func (r CompilerTestlib) Process(inputs Inbounds, outputs Outbounds) (result *Re
 			"/usr/bin/g++", src, "-o", outputs["result"].Path(), "-O2", "-Wall"),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0),
 		judger.WithRealTime(time.Minute),
 		judger.WithOutput(10*judger.MB),
 	)

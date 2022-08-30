@@ -14,7 +14,6 @@ import (
 type Option struct {
 	Logfile   string
 	LogLevel  int
-	LogColor  bool
 	Policy    string
 	PolicyDir string
 	Argument  []string
@@ -88,7 +87,6 @@ func Judge(options ...OptionProvider) (*Result, error) {
 		Limit:     make(L),
 		Logfile:   "runtime.log",
 		LogLevel:  0,
-		LogColor:  false,
 	}
 
 	for _, v := range options {
@@ -98,7 +96,7 @@ func Judge(options ...OptionProvider) (*Result, error) {
 	logger := log.NewTerminal().WithField("runner", option.Runner)
 	logger.Debug(option.Argument)
 
-	if err := logSet(option.Logfile, option.LogLevel, option.LogColor); err != nil {
+	if err := logSet(option.Logfile, option.LogLevel); err != nil {
 		return nil, err
 	}
 	defer logClose()
@@ -217,10 +215,9 @@ func WithFileno(num int) OptionProvider {
 }
 
 // Set logging file. Default is "runtime.log".
-func WithLog(file string, level int, color bool) OptionProvider {
+func WithLog(file string, level int) OptionProvider {
 	return func(o *Option) {
 		o.Logfile = file
 		o.LogLevel = level
-		o.LogColor = color
 	}
 }

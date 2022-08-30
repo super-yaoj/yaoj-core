@@ -38,7 +38,7 @@ func (r CheckerTestlib) Process(inputs Inbounds, outputs Outbounds) (result *Res
 		),
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:free"),
-		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0),
 		judger.WithRealTime(time.Minute),
 		judger.WithOutput(10*judger.MB),
 	)

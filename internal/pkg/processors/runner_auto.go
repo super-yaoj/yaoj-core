@@ -45,7 +45,7 @@ func (r RunnerAuto) Process(inputs Inbounds, outputs Outbounds) *Result {
 	options := []judger.OptionProvider{
 		judger.WithJudger(judger.General),
 		judger.WithPolicy("builtin:yaoj"),
-		judger.WithLog(outputs["judgerlog"].Path(), 0, false),
+		judger.WithLog(outputs["judgerlog"].Path(), 0),
 	}
 
 	if conf.IsFileIO() {

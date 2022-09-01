@@ -93,57 +93,57 @@ type Checksum = yutils.Checksum
 
 type LangTag = yutils.LangTag
 
-const (
-	Lcpp LangTag = iota
-	Lcpp11
-	Lcpp14
-	Lcpp17
-	Lcpp20
-	Lpython2
-	Lpython3
-	Lgo
-	Ljava
-	Lc
-	Lplain
-	Lpython
-)
+// const (
+// 	Lcpp yutils.LangTag = iota
+// 	Lcpp11
+// 	Lcpp14
+// 	Lcpp17
+// 	Lcpp20
+// 	Lpython2
+// 	Lpython3
+// 	Lgo
+// 	Ljava
+// 	Lc
+// 	Lplain
+// 	Lpython
+// )
 
 // 根据字符串推断程序语言
-func SourceLang(s string) LangTag {
+func SourceLang(s string) yutils.LangTag {
 	if strings.Contains(s, "java") {
-		return Ljava
+		return yutils.Ljava
 	}
 	if strings.Contains(s, "cpp") || strings.Contains(s, "cc") {
 		if strings.Contains(s, fmt.Sprint(11)) {
-			return Lcpp11
+			return yutils.Lcpp11
 		}
 		if strings.Contains(s, fmt.Sprint(14)) {
-			return Lcpp14
+			return yutils.Lcpp14
 		}
 		if strings.Contains(s, fmt.Sprint(17)) {
-			return Lcpp17
+			return yutils.Lcpp17
 		}
 		if strings.Contains(s, fmt.Sprint(20)) {
-			return Lcpp20
+			return yutils.Lcpp20
 		}
-		return Lcpp
+		return yutils.Lcpp
 	}
 	if strings.Contains(s, "py") {
 		if strings.Contains(s, fmt.Sprint(2)) {
-			return Lpython2
+			return yutils.Lpython2
 		}
 		if strings.Contains(s, fmt.Sprint(3)) {
-			return Lpython3
+			return yutils.Lpython3
 		}
-		return Lpython
+		return yutils.Lpython
 	}
 	if strings.Contains(s, "go") {
-		return Lgo
+		return yutils.Lgo
 	}
 	if strings.Contains(s, "c") {
-		return Lc
+		return yutils.Lc
 	}
-	return Lplain
+	return yutils.Lplain
 }
 
 type CtntType = yutils.CtntType

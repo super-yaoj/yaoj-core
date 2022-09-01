@@ -9,6 +9,7 @@ import (
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	yutils "github.com/super-yaoj/yaoj-utils"
 )
 
 var (
@@ -59,24 +60,24 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 	basename := utils.RandomString(10)
 
 	switch conf.Lang {
-	case utils.Lc:
+	case yutils.Lc:
 		inputs["source"].DupFile(basename+".c", 0644)
 		argv = []string{
 			"/dev/null", "/dev/null", outputs["log"].Path(),
 			"/usr/bin/gcc", basename + ".c", "-o", outputs["result"].Path(),
 		}
-	case utils.Lcpp, utils.Lcpp11, utils.Lcpp14, utils.Lcpp17, utils.Lcpp20:
+	case yutils.Lcpp, yutils.Lcpp11, yutils.Lcpp14, yutils.Lcpp17, yutils.Lcpp20:
 		inputs["source"].DupFile(basename+".cpp", 0644)
 		// detect c++ version
 		verArg := ""
 		switch conf.Lang {
-		case utils.Lcpp11:
+		case yutils.Lcpp11:
 			verArg = "--std=c++11"
-		case utils.Lcpp14:
+		case yutils.Lcpp14:
 			verArg = "--std=c++14"
-		case utils.Lcpp17:
+		case yutils.Lcpp17:
 			verArg = "--std=c++17"
-		case utils.Lcpp20:
+		case yutils.Lcpp20:
 			verArg = "--std=c++2a"
 		}
 
@@ -90,7 +91,7 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 			args = append(args, verArg)
 		}
 		argv = args
-	case utils.Lpython, utils.Lpython3: // 目前只编译 python3
+	case yutils.Lpython, yutils.Lpython3: // 目前只编译 python3
 		// logger.Printf("detect python source")
 		c_src := utils.RandomString(10) + ".c"
 		py_src := utils.RandomString(10) + ".py"

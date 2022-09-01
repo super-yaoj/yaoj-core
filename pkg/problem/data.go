@@ -21,7 +21,7 @@ type Data struct {
 	Workflow *workflow.Workflow `json:"workflow"`
 
 	// get analyzer by manager
-	AnalyzerName string
+  AnalyzerName string `json:"analyzer"`
 
 	// pretest 常用于样例评测
 	Pretest *TestdataGroup `json:"pretest"`

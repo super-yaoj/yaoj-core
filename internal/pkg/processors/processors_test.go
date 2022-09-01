@@ -9,6 +9,7 @@ import (
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
+	yutils "github.com/super-yaoj/yaoj-utils"
 )
 
 // go:generate go build -buildmode=plugin -o ./testdata/diff-go ./testdata/diff-go/main.go
@@ -105,9 +106,9 @@ func TestProcessors(t *testing.T) {
 			exec string
 			lang utils.LangTag
 		}{
-			{"c", c_src, "exec_c", utils.Lc},
-			{"cpp", cpp_src, "exec_cpp", utils.Lcpp},
-			{"python", py_src, "exec_py", utils.Lpython},
+			{"c", c_src, "exec_c", yutils.Lc},
+			{"cpp", cpp_src, "exec_cpp", yutils.Lcpp},
+			{"python", py_src, "exec_py", yutils.Lpython},
 		}
 
 		for _, testcase := range testcases {

@@ -2,6 +2,7 @@ package processors
 
 import (
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 )
 
@@ -33,12 +34,12 @@ func (r RunnerAuto) Process(inputs Inbounds, outputs Outbounds) *Result {
 	}
 
 	// parse config
-	data, err := inputs["conf"].Get()
+	dat, err := inputs["conf"].Get()
 	if err != nil {
 		return RtErrRes(err)
 	}
-	var conf RunConf
-	if err := conf.Deserialize(data); err != nil {
+	var conf data.RunConf
+	if err := conf.Deserialize(dat); err != nil {
 		return RtErrRes(err)
 	}
 

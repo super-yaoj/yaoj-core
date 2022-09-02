@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
@@ -129,7 +129,7 @@ func (r *UojTraditional) Migrate(dest string) error {
 	ml := parseInt(conf["memory_limit"])
 	ol := parseInt(conf["output_limit"])
 
-	err = prob.Static.SetData("runner_config", (&processors.RunConf{
+	err = prob.Static.SetData("runner_config", (&data.RunConf{
 		RealTime: 1000 * 60, // 1min
 		CpuTime:  uint(tl) * 1000,
 		VirMem:   0,

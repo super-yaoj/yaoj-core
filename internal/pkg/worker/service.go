@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/analyzers"
-	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	problemruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/problem"
 	workflowruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/workflow"
 	"github.com/super-yaoj/yaoj-core/pkg/data"
@@ -142,7 +141,7 @@ func (r *Service) CustomTest(submission_data []byte) (*workflow.Result, error) {
 
 	inbounds := submission.Download(dir)
 	inbounds[workflow.Gstatic] = map[string]data.FileStore{
-		"runner_config": data.NewFile(path.Join(dir, "_limit"), (&processors.RunConf{
+		"runner_config": data.NewFile(path.Join(dir, "_limit"), (&data.RunConf{
 			RealTime: 10000,
 			CpuTime:  10000,
 			VirMem:   504857600,

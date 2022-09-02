@@ -7,6 +7,7 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
 	"github.com/super-yaoj/yaoj-core/pkg/utils"
 	yutils "github.com/super-yaoj/yaoj-utils"
@@ -47,12 +48,12 @@ func (r CompilerAuto) Label() (inputlabel []string, outputlabel []string) {
 func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Result) {
 	var argv []string
 	// parse compile option
-	data, err := inputs["option"].Get()
+	dat, err := inputs["option"].Get()
 	if err != nil {
 		return SysErrRes(err)
 	}
-	var conf = &CompileConf{}
-	err = conf.Deserialize(data)
+	var conf = &data.CompileConf{}
+	err = conf.Deserialize(dat)
 	if err != nil {
 		return SysErrRes(err)
 	}

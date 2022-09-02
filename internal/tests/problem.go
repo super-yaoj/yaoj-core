@@ -3,7 +3,7 @@ package tests
 import (
 	"fmt"
 
-	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/log"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
@@ -118,7 +118,7 @@ func CreateProblem(dir string, lg *log.Entry) (*problem.Data, error) {
 
 	// setup static
 	prob.Static.SetData("checker", []byte(NcmpSource))
-	prob.Static.SetData("runner_config", (&processors.RunConf{
+	prob.Static.SetData("runner_config", (&data.RunConf{
 		RealTime: 60 * 1000,
 		CpuTime:  1000,
 		RealMem:  512 * 1024 * 1024,
@@ -135,7 +135,7 @@ func CreateSubmission() problem.Submission {
 	// setup submission
 	submission := problem.Submission{}
 	submission.SetData(workflow.Gsubm, "source", []byte(APlusBSourceCpp))
-	submission.SetData(workflow.Gsubm, "option", (&processors.CompileConf{
+	submission.SetData(workflow.Gsubm, "option", (&data.CompileConf{
 		Lang: utils.Lcpp11,
 	}).Serialize())
 	return submission

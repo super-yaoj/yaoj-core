@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
+	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/problem"
 	"github.com/super-yaoj/yaoj-core/pkg/workflow"
 	utils "github.com/super-yaoj/yaoj-utils"
@@ -15,7 +15,7 @@ func TestSubmission(t *testing.T) {
 	subm := problem.Submission{}
 
 	subm.SetData(workflow.Gsubm, "source", []byte("your source code"))
-	subm.SetData(workflow.Gsubm, "option", (&processors.CompileConf{
+	subm.SetData(workflow.Gsubm, "option", (&data.CompileConf{
 		Lang: utils.Lcpp,
 	}).Serialize())
 

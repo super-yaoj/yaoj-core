@@ -31,7 +31,7 @@ type SubtaskData struct {
 	// 该子任务的分数
 	Fullscore float64 `json:"fullscore"`
 	// 测试点数据
-	Testcases []*TestcaseData `json:"data"`
+	Testcases []*TestcaseData `json:"testcases"`
 }
 
 func (r *SubtaskData) NewTestcase() *TestcaseData {

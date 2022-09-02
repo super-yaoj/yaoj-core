@@ -117,7 +117,7 @@ func TestProcessors(t *testing.T) {
 				src := data.NewFile("main.txt", nil)
 				src.Set([]byte(testcase.src))
 				// option
-				conf := processors.CompileConf{Lang: testcase.lang}
+				conf := data.CompileConf{Lang: testcase.lang}
 
 				inputs := processor.Inbounds{
 					"source": src,
@@ -152,9 +152,9 @@ func TestProcessors(t *testing.T) {
 			name  string
 			exec  string
 			input string
-			conf  processors.RunConf
+			conf  data.RunConf
 		}{
-			{"fileio", "exec_c", "exec.in", processors.RunConf{
+			{"fileio", "exec_c", "exec.in", data.RunConf{
 				RealTime: 5 * 1000,
 				CpuTime:  5 * 1000,
 				VirMem:   512 * 1000 * 1000,
@@ -165,7 +165,7 @@ func TestProcessors(t *testing.T) {
 				Inf:      "a.in",
 				Ouf:      "a.out",
 			}},
-			{"stdio", "exec_cpp", "exec.in", processors.RunConf{
+			{"stdio", "exec_cpp", "exec.in", data.RunConf{
 				RealTime: 5 * 1000,
 			}},
 		}

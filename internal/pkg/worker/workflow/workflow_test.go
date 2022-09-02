@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/super-yaoj/yaoj-core/internal/pkg/analyzers"
-	"github.com/super-yaoj/yaoj-core/internal/pkg/processors"
 	workflowruntime "github.com/super-yaoj/yaoj-core/internal/pkg/worker/workflow"
 	"github.com/super-yaoj/yaoj-core/internal/tests"
 	"github.com/super-yaoj/yaoj-core/pkg/data"
@@ -27,12 +26,12 @@ func TestRtWorkflow(t *testing.T) {
 		workflow.Gsubm:   make(map[string]data.FileStore),
 	}
 	inbounds[workflow.Gsubm]["source"] = data.NewFile(path.Join(dir, "_main.cpp"), []byte(tests.APlusBSourceCpp))
-	inbounds[workflow.Gsubm]["option"] = data.NewFile(path.Join(dir, "_cpl"), (&processors.CompileConf{
+	inbounds[workflow.Gsubm]["option"] = data.NewFile(path.Join(dir, "_cpl"), (&data.CompileConf{
 		Lang: utils.Lcpp11,
 	}).Serialize())
 
 	inbounds[workflow.Gstatic]["checker"] = data.NewFile(path.Join(dir, "_chk.cpp"), []byte(tests.NcmpSource))
-	inbounds[workflow.Gstatic]["runner_config"] = data.NewFile(path.Join(dir, "_runconf"), (&processors.RunConf{
+	inbounds[workflow.Gstatic]["runner_config"] = data.NewFile(path.Join(dir, "_runconf"), (&data.RunConf{
 		RealTime: 60 * 1000,
 		CpuTime:  1000,
 		RealMem:  512 * 1024 * 1024,

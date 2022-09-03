@@ -25,9 +25,9 @@ const (
 // Bound 可以理解为 Workflow 中结点的端口
 type Bound struct {
 	// name of the node
-	Name string
+	Name string `json:"name"`
 	// label of the input/output store
-	Label string
+	Label string `json:"label"`
 }
 
 // Inbound 是读入数据的端口
@@ -39,18 +39,14 @@ type Outbound Bound
 // Edge between nodes. Edges from field to node are stored in
 // Workflow.Inbound.
 type Edge struct {
-	From Outbound
-	To   Inbound
+	From Outbound `json:"from"`
+	To   Inbound  `json:"to"`
 }
 
 // Node of workflow
 type Node struct {
 	// processor name
 	ProcName string `json:"processor"`
-	// key node is attached importance by Analyzer
-	//
-	// deprecated
-	Key bool
 	// whether caching its result in global cache
 	Cache bool `json:"cache"`
 }

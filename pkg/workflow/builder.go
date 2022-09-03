@@ -29,14 +29,13 @@ func (r *Builder) tryInit() {
 //
 // procName: specify its processor.
 //
-// key: whether its a key node.
+// key: whether its a key node. (deprecated)
 //
 // cache: whether caching its result in global cache.
 func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 	r.tryInit()
 	r.node[name] = Node{
 		ProcName: procName,
-		Key:      key,
 		Cache:    cache,
 	}
 }

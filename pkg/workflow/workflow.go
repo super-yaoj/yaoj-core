@@ -55,16 +55,21 @@ type Node struct {
 type InboundGroups map[Groupname]InboundGroup
 type InboundGroup = map[string]data.FileStore
 
-// Generate json content
-/*
-func (r *Workflow) Serialize() []byte {
-	res, err := json.Marshal(*r)
-	if err != nil {
-		panic(err)
-	}
-	return res
+// workflow describes how to perform a single testcase's judgement
+//
+// json marshalable
+type Workflow struct {
+	// All nodes of the workflow. Each node has its unique name, represented by
+	// the key.
+	Node map[string]Node `json:"node"`
+
+	// All edges of the workflow. An edge is directed, connecting two different
+	// nodes.
+	Edge []Edge `json:"edge"`
+
+	// Inbound stores edges from submission's fields to nodes.
+	Inbound map[Groupname]map[string][]Inbound `json:"inbound"`
 }
-*/
 
 // Return all edges starting from Node[nodeid]
 func (r *Workflow) EdgeFrom(name string) []Edge {
@@ -88,6 +93,34 @@ func (r *Workflow) EdgeTo(name string) []Edge {
 	return res
 }
 
+// Transform workflow to its corresponding builder (for yaoj-cook)
+func (r *Workflow) Builder() *Builder {
+	var builder Builder
+	for name, node := range r.Node {
+		builder.SetNode(name, node.ProcName, false, node.Cache)
+	}
+	for _, edge := range r.Edge {
+		builder.AddEdge(edge.From.Name, edge.From.Label, edge.To.Name, edge.To.Label)
+	}
+	for gname, group := range r.Inbound {
+		for field, bounds := range group {
+			for _, bound := range bounds {
+				builder.AddInbound(gname, field, bound.Name, bound.Label)
+			}
+		}
+	}
+	return &builder
+}
+
+// Create an empty Workflow
+func New() *Workflow {
+	return &Workflow{
+		Node:    map[string]Node{},
+		Edge:    []Edge{},
+		Inbound: map[Groupname]map[string][]Inbound{},
+	}
+}
+
 // Load graph from serialized data (json)
 func Load(serial []byte) (*Workflow, error) {
 	var graph Workflow
@@ -105,22 +138,6 @@ func LoadFile(path string) (*Workflow, error) {
 		return nil, yerrors.Situated("LoadFile", err)
 	}
 	return Load(serial)
-}
-
-// workflow describes how to perform a single testcase's judgement
-//
-// json marshalable
-type Workflow struct {
-	// All nodes of the workflow. Each node has its unique name, represented by
-	// the key.
-	Node map[string]Node `json:"node"`
-
-	// All edges of the workflow. An edge is directed, connecting two different
-	// nodes.
-	Edge []Edge `json:"edge"`
-
-	// Inbound stores edges from submission's fields to nodes.
-	Inbound map[Groupname]map[string][]Inbound `json:"inbound"`
 }
 
 type ResultMeta struct {
@@ -151,13 +168,4 @@ func (r *Result) Byte() []byte {
 type ResultFile struct {
 	Title   string
 	Content string
-}
-
-// Create an empty Workflow
-func New() *Workflow {
-	return &Workflow{
-		Node:    map[string]Node{},
-		Edge:    []Edge{},
-		Inbound: map[Groupname]map[string][]Inbound{},
-	}
 }

@@ -8,20 +8,21 @@ import (
 
 // Builder builds a workflow. It doesn't need initialization manually
 type Builder struct {
-	node          map[string]Node
-	inbound, edge [][4]string
-	err           error
+	Nodes    map[string]Node `json:"nodes"`
+	Inbounds [][4]string     `json:"inbounds"`
+	Edges    [][4]string     `json:"edges"`
+	err      error
 }
 
 func (r *Builder) tryInit() {
-	if r.node == nil {
-		r.node = map[string]Node{}
+	if r.Nodes == nil {
+		r.Nodes = map[string]Node{}
 	}
-	if r.edge == nil {
-		r.edge = [][4]string{}
+	if r.Edges == nil {
+		r.Edges = [][4]string{}
 	}
-	if r.inbound == nil {
-		r.inbound = [][4]string{}
+	if r.Inbounds == nil {
+		r.Inbounds = [][4]string{}
 	}
 }
 
@@ -34,7 +35,7 @@ func (r *Builder) tryInit() {
 // cache: whether caching its result in global cache.
 func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 	r.tryInit()
-	r.node[name] = Node{
+	r.Nodes[name] = Node{
 		ProcName: procName,
 		Cache:    cache,
 	}
@@ -42,7 +43,7 @@ func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 
 func (r *Builder) AddEdge(from, frlabel, to, tolabel string) {
 	r.tryInit()
-	r.edge = append(r.edge, [4]string{from, frlabel, to, tolabel})
+	r.Edges = append(r.Edges, [4]string{from, frlabel, to, tolabel})
 }
 
 func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
@@ -51,7 +52,7 @@ func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
 		r.err = yerrors.Situated("Builder.AddInbound", ErrInvalidGroupname)
 		return
 	}
-	r.inbound = append(r.inbound, [4]string{string(group), field, to, tolabel})
+	r.Inbounds = append(r.Inbounds, [4]string{string(group), field, to, tolabel})
 }
 
 func (r *Builder) Workflow() (*Workflow, error) {
@@ -59,7 +60,7 @@ func (r *Builder) Workflow() (*Workflow, error) {
 		return nil, r.err
 	}
 	graph := New()
-	for name, node := range r.node {
+	for name, node := range r.Nodes {
 		graph.Node[name] = node
 	}
 
@@ -77,7 +78,7 @@ func (r *Builder) Workflow() (*Workflow, error) {
 		return vis[name][label]
 	}
 
-	for _, edge := range r.edge {
+	for _, edge := range r.Edges {
 		from, frlabel, to, tolabel := edge[0], edge[1], edge[2], edge[3]
 		frlabelIndex := idxOf(processor.OutputLabel(graph.Node[from].ProcName), frlabel)
 		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
@@ -102,7 +103,7 @@ func (r *Builder) Workflow() (*Workflow, error) {
 			Inbound{to, tolabel},
 		})
 	}
-	for _, edge := range r.inbound {
+	for _, edge := range r.Inbounds {
 		group, field, to, tolabel := edge[0], edge[1], edge[2], edge[3]
 		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
 

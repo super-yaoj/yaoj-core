@@ -9,9 +9,8 @@ import (
 // Builder builds a workflow. It doesn't need initialization manually
 type Builder struct {
 	Nodes    map[string]Node `json:"nodes"`
-	Inbounds [][4]string     `json:"inbounds"`
-	Edges    [][4]string     `json:"edges"`
-	err      error
+	Inbounds [][]string      `json:"inbounds"`
+	Edges    [][]string      `json:"edges"`
 }
 
 func (r *Builder) tryInit() {
@@ -19,10 +18,10 @@ func (r *Builder) tryInit() {
 		r.Nodes = map[string]Node{}
 	}
 	if r.Edges == nil {
-		r.Edges = [][4]string{}
+		r.Edges = [][]string{}
 	}
 	if r.Inbounds == nil {
-		r.Inbounds = [][4]string{}
+		r.Inbounds = [][]string{}
 	}
 }
 
@@ -43,22 +42,15 @@ func (r *Builder) SetNode(name string, procName string, key bool, cache bool) {
 
 func (r *Builder) AddEdge(from, frlabel, to, tolabel string) {
 	r.tryInit()
-	r.Edges = append(r.Edges, [4]string{from, frlabel, to, tolabel})
+	r.Edges = append(r.Edges, []string{from, frlabel, to, tolabel})
 }
 
 func (r *Builder) AddInbound(group Groupname, field, to, tolabel string) {
 	r.tryInit()
-	if group != Gtests && group != Gstatic && group != Gsubm {
-		r.err = yerrors.Situated("Builder.AddInbound", ErrInvalidGroupname)
-		return
-	}
-	r.Inbounds = append(r.Inbounds, [4]string{string(group), field, to, tolabel})
+	r.Inbounds = append(r.Inbounds, []string{string(group), field, to, tolabel})
 }
 
 func (r *Builder) Workflow() (*Workflow, error) {
-	if r.err != nil {
-		return nil, r.err
-	}
 	graph := New()
 	for name, node := range r.Nodes {
 		graph.Node[name] = node
@@ -106,6 +98,10 @@ func (r *Builder) Workflow() (*Workflow, error) {
 	for _, edge := range r.Inbounds {
 		group, field, to, tolabel := edge[0], edge[1], edge[2], edge[3]
 		tolabelIndex := idxOf(processor.InputLabel(graph.Node[to].ProcName), tolabel)
+
+		if Groupname(group) != Gtests && Groupname(group) != Gstatic && Groupname(group) != Gsubm {
+			return nil, yerrors.Situated("Builder.AddInbound", ErrInvalidGroupname)
+		}
 
 		if _, ok := graph.Node[to]; !ok {
 			return nil, yerrors.Annotated("edge", edge, ErrInvalidEdge)

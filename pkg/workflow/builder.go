@@ -25,7 +25,7 @@ func (r *Builder) tryInit() {
 	}
 }
 
-// Add a node to the workflow.
+// Add or update a node to the workflow.
 //
 // procName: specify its processor.
 //

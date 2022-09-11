@@ -2,10 +2,9 @@ package processors
 
 import (
 	"errors"
-	"strings"
+	"os/exec"
 	"time"
 
-	"github.com/bitfield/script"
 	"github.com/super-yaoj/yaoj-core/internal/pkg/judger"
 	"github.com/super-yaoj/yaoj-core/pkg/data"
 	"github.com/super-yaoj/yaoj-core/pkg/processor"
@@ -122,13 +121,11 @@ func (r CompilerAuto) Process(inputs Inbounds, outputs Outbounds) (result *Resul
 		if err != nil {
 			return SysErrRes(err)
 		}
-		_, err = script.Exec(strings.Join([]string{
-			"/usr/bin/gcc",
-			"-Wall", "-Wextra", "-fpie",
-			strings.TrimSpace(CFLAGS),
-			"-o", outputs["result"].Path(), c_src,
-			strings.TrimSpace(LDFLAGS),
-		}, " ")).String()
+		args := []string{"-Wall", "-Wextra", "-fpie", "-o", outputs["result"].Path(), c_src}
+		args = append(args, CFLAGS...)
+		args = append(args, LDFLAGS...)
+
+		err = exec.Command("/usr/bin/gcc", args...).Run()
 		if err != nil {
 			return RtErrRes(err)
 		}

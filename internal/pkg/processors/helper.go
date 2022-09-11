@@ -54,24 +54,34 @@ func SysErrRes(err error) *Result {
 	}
 }
 
-func PythonFlags() (cflags string, ldflags string, err error) {
+func PythonFlags() (cflags []string, ldflags []string, err error) {
+	toFlags := func(s string) []string {
+		flags := strings.Split(strings.TrimSpace(s), " ")
+		final := []string{}
+		for _, v := range flags {
+			if v != "" {
+				final = append(final, v)
+			}
+		}
+		return final
+	}
 	var cflagsbuf, ldflagsbuf strings.Builder
 	// cflags
 	cmdcflags := exec.Command("python3-config", "--cflags", "--embed")
 	cmdcflags.Stdout = &cflagsbuf
 	err = cmdcflags.Run()
 	if err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
-	cflags = cflagsbuf.String()
+	cflags = toFlags(cflagsbuf.String())
 	// ldflags
 	cmdldflags := exec.Command("python3-config", "--ldflags", "--embed")
 	cmdldflags.Stdout = &ldflagsbuf
 	err = cmdldflags.Run()
 	if err != nil {
-		return "", "", err
+		return nil, nil, err
 	}
-	ldflags = ldflagsbuf.String()
+	ldflags = toFlags(ldflagsbuf.String())
 
 	return
 }

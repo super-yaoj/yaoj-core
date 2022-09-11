@@ -11,3 +11,13 @@ func InputLabel(name string) []string {
 func OutputLabel(name string) []string {
 	return ouLabel[name]
 }
+
+// Get all processor's information (used by cook)
+func All() map[string][][]string {
+	res := map[string][][]string{}
+	for name, input := range inLabel {
+		res[name] = append(res[name], input)
+		res[name] = append(res[name], ouLabel[name])
+	}
+	return res
+}

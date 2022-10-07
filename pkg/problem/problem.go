@@ -16,9 +16,11 @@ import (
 type CalcMethod int
 
 const (
-	// default
+	// 得分取子任务（测试点）中得分最低的
 	Mmin CalcMethod = iota
+	// 得分取子任务（测试点）中得分最高的
 	Mmax
+	// 得分取子任务（测试点）得分之和
 	Msum
 )
 

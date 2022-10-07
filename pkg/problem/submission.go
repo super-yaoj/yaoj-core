@@ -131,11 +131,11 @@ type SubmConf map[string]SubmLimit
 // Limitation for submitted files
 type SubmLimit struct {
 	// 接受的语言，nil 表示所有语言
-	Langs []utils.LangTag
+	Langs []utils.LangTag `json:"langs"`
 	// 接受哪些类型的文件，必须设置值
-	Accepted utils.CtntType
+	Accepted utils.CtntType `json:"accepted"`
 	// 文件大小，单位 byte
-	Length uint32
+	Length uint32 `json:"length"`
 }
 
 // 事实上只检查长度

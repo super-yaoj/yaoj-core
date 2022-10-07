@@ -36,6 +36,8 @@ type Inbound Bound
 // Outboud 是输出数据的端口
 type Outbound Bound
 
+type Outbounds = map[string]Outbound
+
 // Edge between nodes. Edges from field to node are stored in
 // Workflow.Inbound.
 type Edge struct {
@@ -55,6 +57,8 @@ type Node struct {
 type InboundGroups map[Groupname]InboundGroup
 type InboundGroup = map[string]data.FileStore
 
+type InboundFields = map[string][]Inbound
+
 // workflow describes how to perform a single testcase's judgement
 //
 // json marshalable
@@ -68,7 +72,7 @@ type Workflow struct {
 	Edge []Edge `json:"edge"`
 
 	// Inbound stores edges from submission's fields to nodes.
-	Inbound map[Groupname]map[string][]Inbound `json:"inbound"`
+	Inbound map[Groupname]InboundFields `json:"inbound"`
 }
 
 // Return all edges starting from Node[nodeid]

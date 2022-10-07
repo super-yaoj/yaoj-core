@@ -21,7 +21,7 @@ type Data struct {
 	Workflow *workflow.Workflow `json:"workflow"`
 
 	// get analyzer by manager
-  AnalyzerName string `json:"analyzer"`
+	AnalyzerName string `json:"analyzer"`
 
 	// pretest 常用于样例评测
 	Pretest *TestdataGroup `json:"pretest"`
@@ -40,7 +40,7 @@ type Data struct {
 	HackFields SubmConf `json:"hack_config"`
 	// 由 tests 的字段映射到 workflow 的中间输出文件
 	// 为 nil 表示不支持 hack
-	HackIOMap map[string]workflow.Outbound `json:"hack_map"`
+	HackIOMap workflow.Outbounds `json:"hack_map"`
 
 	// statement fielded by language
 	Statement *DirRecord `json:"statement"`
